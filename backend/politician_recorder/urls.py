@@ -5,6 +5,7 @@ from django.conf.urls.static import static
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 from rest_framework import permissions
+from django.http import HttpResponse
 
 schema_view = get_schema_view(
     openapi.Info(
@@ -15,7 +16,14 @@ schema_view = get_schema_view(
     permission_classes=[permissions.AllowAny],
 )
 
+
+def ping_server(request):
+    return HttpResponse("Hello World")
+
+
 urlpatterns = [
+    path('ping/', ping_server, name="ping"),
+    
     path('admin/', admin.site.urls),
     path('api/', include('user_api.urls')),
     path('api/', include('politicians.urls')),
