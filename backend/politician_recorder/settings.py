@@ -50,6 +50,7 @@ INSTALLED_APPS = [
 
     'user_api',
     'politicians',
+    'news_api',
 ]
 
 MIDDLEWARE = [

@@ -8,7 +8,7 @@ import UpcommingElection from "./pages/UpcommingElection";
 import AboutPage from "./pages/About";
 import ScrollToTop from "./components/ScrollToTop";
 import Party from "./pages/Party";
-
+import News from "./pages/News";
 const App = () => {
   const [isDark, setIsDark] = useState(true);
 
@@ -23,6 +23,7 @@ const App = () => {
         <Route path="/politician/:id" element={<PoliticianDetail />} />
         <Route path="/about" element={<AboutPage />} />
         <Route path="/election" element={<UpcommingElection />} />
+        <Route path="/news" element={<News />} />
         <Route path="*" element={<Navigate to="/home" />} />
       </Routes>
     </BrowserRouter>
