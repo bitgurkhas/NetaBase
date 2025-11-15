@@ -9,7 +9,7 @@ export default function PoliticalPartiesSection() {
       abbr: 'NCP',
       color: '#FF6B35',
       members: 245,
-      logo: '🔴',
+      logo: 'https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fvectorseek.com%2Fwp-content%2Fuploads%2F2023%2F06%2FNepal-Communist-Party-Logo-Vector.jpg&f=1&nofb=1&ipt=10f46ee6de2a4c0bf881948874b6b30230e4784e8c5b047fd65f4a3a101507c2',
       description: 'Marxist-Leninist ideology'
     },
     {
@@ -18,7 +18,7 @@ export default function PoliticalPartiesSection() {
       abbr: 'NC',
       color: '#1E88E5',
       members: 198,
-      logo: '🔵',
+      logo: 'https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fvectorseek.com%2Fwp-content%2Fuploads%2F2023%2F06%2FNepali-Congress-Symbol-Logo-Vector.jpg&f=1&nofb=1&ipt=b59c3301e9a7351850d274c4cae6f1a5064efc5680e6780261f0e4594f4ab67d',
       description: 'Liberal democratic party'
     },
     {
@@ -27,7 +27,7 @@ export default function PoliticalPartiesSection() {
       abbr: 'RJP',
       color: '#7C3AED',
       members: 156,
-      logo: '🟣',
+      logo: 'https://via.placeholder.com/150?text=RJP',
       description: 'Federalist party'
     },
     {
@@ -36,7 +36,7 @@ export default function PoliticalPartiesSection() {
       abbr: 'CPNMC',
       color: '#DC2626',
       members: 134,
-      logo: '🔺',
+      logo: 'https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fupload.wikimedia.org%2Fwikipedia%2Fcommons%2F3%2F35%2FLogo_of_the_Communist_Party_of_Nepal_(Maoist_Centre).png%3F20220804080654&f=1&nofb=1&ipt=d705e04bb243864cd77d2a6cdd159bf9589515d77f5cc66210cc0b87df4d3d2d',
       description: 'Socialist ideology'
     },
     {
@@ -45,7 +45,7 @@ export default function PoliticalPartiesSection() {
       abbr: 'RSP',
       color: '#F59E0B',
       members: 112,
-      logo: '🟠',
+      logo: 'https://via.placeholder.com/150?text=RSP',
       description: 'Socialist party'
     },
     {
@@ -54,7 +54,7 @@ export default function PoliticalPartiesSection() {
       abbr: 'JD',
       color: '#10B981',
       members: 89,
-      logo: '🟢',
+      logo: 'https://via.placeholder.com/150?text=JD',
       description: 'Democratic party'
     }
   ]);
@@ -85,12 +85,15 @@ export default function PoliticalPartiesSection() {
                 style={{ backgroundColor: party.color }}
               ></div>
 
-              {/* Party Poster */}
+              {/* Party Logo */}
               <div
-                className="h-64 flex items-center justify-center text-7xl group-hover:scale-110 transition-transform duration-300"
-                style={{ backgroundColor: `${party.color}15` }}
+                className="h-64 flex items-center justify-center overflow-hidden group-hover:scale-105 transition-transform duration-300"
               >
-                {party.logo}
+                <img 
+                  src={party.logo} 
+                  alt={party.name}
+                  className="w-full h-full object-cover"
+                />
               </div>
 
               {/* Content */}
@@ -136,10 +139,14 @@ export default function PoliticalPartiesSection() {
             >
               <div className="flex gap-6">
                 <div
-                  className="text-9xl flex-shrink-0"
-                  style={{ color: selectedParty.color }}
+                  className="flex-shrink-0 w-32 h-32 rounded-lg overflow-hidden flex items-center justify-center"
+                  style={{ backgroundColor: `${selectedParty.color}15` }}
                 >
-                  {selectedParty.logo}
+                  <img 
+                    src={selectedParty.logo} 
+                    alt={selectedParty.name}
+                    className="w-full h-full object-cover"
+                  />
                 </div>
                 <div className="flex-1">
                   <h2 className="text-3xl font-bold text-white mb-2">{selectedParty.name}</h2>
