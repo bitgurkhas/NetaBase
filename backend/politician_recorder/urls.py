@@ -18,7 +18,7 @@ schema_view = get_schema_view(
 
 
 def ping_server(request):
-    return HttpResponse("Hello World")
+    return HttpResponse("pong")
 
 
 urlpatterns = [
