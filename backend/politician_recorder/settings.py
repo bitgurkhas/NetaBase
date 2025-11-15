@@ -126,8 +126,8 @@ STATICFILES_DIRS = [
 # Storage backends
 STORAGES = {
     "default": {
-        # "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
-        "BACKEND": "django.core.files.storage.FileSystemStorage",
+        "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
+        # "BACKEND": "django.core.files.storage.FileSystemStorage",
     },
     "staticfiles": {
         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
