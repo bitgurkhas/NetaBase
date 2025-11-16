@@ -47,10 +47,12 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'corsheaders',
     'drf_yasg',
-
+    'django_filters',
+    
     'user_api',
     'politicians',
     'news_api',
+
 ]
 
 MIDDLEWARE = [
@@ -179,6 +181,19 @@ SIMPLE_JWT = {
         days=int(os.getenv("REFRESH_TOKEN_LIFETIME_DAYS", 100))
     ),
 }
+
+SWAGGER_SETTINGS = {
+        'SECURITY_DEFINITIONS': {
+            'Bearer': {
+                'type': 'apiKey',
+                'name': 'Authorization',
+                'in': 'header',
+                'description': "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
+            }
+        },
+        'REFETCH_SCHEMA_WITH_AUTH': False,
+    }
+
 
 # CSRF
 CSRF_TRUSTED_ORIGINS = [
