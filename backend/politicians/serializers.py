@@ -4,11 +4,24 @@ from django.db.models import Avg
 
 
 class PartySerializer(serializers.ModelSerializer):
+    politician_count = serializers.SerializerMethodField()
     
     class Meta:
         model = Party
-        fields = '__all__'
-
+        fields = [
+            'id',
+            'name',
+            'slug',
+            'short_name',
+            'flag',
+            'politician_count',
+            'created_at',
+            'updated_at'
+        ]
+        read_only_fields = ['slug', 'created_at', 'updated_at']
+    
+    def get_politician_count(self, obj):
+        return obj.politicians.filter(is_active=True).count()
 
 class PoliticianSerializer(serializers.ModelSerializer):
     party_name = serializers.CharField(source='party.name', read_only=True)

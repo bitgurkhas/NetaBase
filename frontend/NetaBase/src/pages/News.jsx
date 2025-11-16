@@ -1,5 +1,5 @@
-// NewsWidget.jsx
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
+import axios from "axios";
 import "../style/News.css";
 
 export default function PoliticsNewsWidget() {
@@ -9,21 +9,26 @@ export default function PoliticsNewsWidget() {
   const [filter, setFilter] = useState("all");
 
   useEffect(() => {
-    fetch("http://localhost:8000/api/news/ratopati-politics/")
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.status === "success") {
-          setNews(data.data || []);
+    const fetchNews = async () => {
+      try {
+        const response = await axios.get(
+          `${import.meta.env.VITE_BASE_URL}/api/news/ratopati-politics/`
+        );
+        
+        if (response.data.status === "success") {
+          setNews(response.data.data || []);
         } else {
-          setError(data.error || "Failed to fetch news");
+          setError(response.data.error || "Failed to fetch news");
         }
-        setLoading(false);
-      })
-      .catch((err) => {
+      } catch (err) {
         console.error("Error fetching news:", err);
         setError("Failed to load politics news");
+      } finally {
         setLoading(false);
-      });
+      }
+    };
+
+    fetchNews();
   }, []);
 
   const stripHtml = (html) => {

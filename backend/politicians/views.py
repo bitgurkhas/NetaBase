@@ -6,8 +6,8 @@ from rest_framework.exceptions import PermissionDenied
 from rest_framework.pagination import PageNumberPagination
 from django_filters.rest_framework import DjangoFilterBackend
 from django.shortcuts import get_object_or_404
-from politicians.models import Politician, Rating
-from politicians.serializers import RatingSerializer
+from politicians.models import Party, Politician, Rating
+from politicians.serializers import PartySerializer, RatingSerializer
 from politicians.serializers import PoliticianSerializer, PoliticianDetailSerializer
 
 
@@ -15,6 +15,42 @@ class StandardResultsSetPagination(PageNumberPagination):
     page_size = 10
     page_size_query_param = 'page_size'
     max_page_size = 100
+
+# Party List View
+class PartyListView(generics.ListAPIView):
+    queryset = Party.objects.all()
+    serializer_class = PartySerializer
+    permission_classes = [AllowAny]
+    pagination_class = StandardResultsSetPagination
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    
+    search_fields = ['name', 'short_name']
+    ordering_fields = ['name', 'created_at']
+    ordering = ['name']  # Default alphabetical ordering
+
+
+# Party Detail View
+class PartyDetailView(generics.RetrieveAPIView):
+    queryset = Party.objects.all()
+    serializer_class = PartySerializer
+    permission_classes = [AllowAny]
+    lookup_field = 'slug'
+
+
+# Politicians by Party View
+class PartyPoliticiansView(generics.ListAPIView):
+    serializer_class = PoliticianSerializer
+    permission_classes = [AllowAny]
+    pagination_class = StandardResultsSetPagination
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    
+    search_fields = ['name', 'biography', 'education', 'location', 'party_position']
+    ordering_fields = ['name', 'age', 'created_at', 'views']
+    ordering = ['-views']
+
+    def get_queryset(self):
+        party_slug = self.kwargs['slug']
+        return Politician.objects.filter(party__slug=party_slug)
 
 
 class PoliticianListView(generics.ListAPIView):
