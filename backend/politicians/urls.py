@@ -1,11 +1,17 @@
-from django.urls import path, include
-from rest_framework.routers import DefaultRouter
-from .views import PoliticianViewSet, RatingViewSet
-
-router = DefaultRouter()
-router.register('politicians', PoliticianViewSet)
-router.register('ratings', RatingViewSet)
+from django.urls import path
+from politicians.views import (
+    PoliticianDetailView,
+    PoliticianListView,
+    PoliticianRatingListCreateView,
+    PoliticianRatingDetailView
+)
 
 urlpatterns = [
-    path('', include(router.urls)),
+    # Politician list & detail
+    path("politicians/", PoliticianListView.as_view(), name="politician-list"),
+    path("politicians/<slug:slug>/", PoliticianDetailView.as_view(), name="politician-detail"),
+    
+    # Ratings for a politician
+    path("politicians/<slug:slug>/ratings/", PoliticianRatingListCreateView.as_view(), name="politician-ratings"),
+    path("ratings/<int:pk>/", PoliticianRatingDetailView.as_view(), name="rating-detail"),
 ]

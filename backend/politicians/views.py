@@ -1,146 +1,110 @@
-from rest_framework import viewsets, permissions
-from politicians.models import Politician, Rating
-from politicians.serializers import PoliticianDetailSerializer, PoliticianSerializer, RatingSerializer
-from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
-from rest_framework_simplejwt.authentication import JWTAuthentication
-from rest_framework import status
-from rest_framework import viewsets, permissions, status
-from rest_framework.decorators import action
-from rest_framework.response import Response
+from rest_framework import generics, status, filters
 from rest_framework.permissions import IsAuthenticated, AllowAny
-
+from rest_framework.response import Response
+from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework.exceptions import PermissionDenied
+from rest_framework.pagination import PageNumberPagination
+from django_filters.rest_framework import DjangoFilterBackend
+from django.shortcuts import get_object_or_404
 from politicians.models import Politician, Rating
 from politicians.serializers import RatingSerializer
+from politicians.serializers import PoliticianSerializer, PoliticianDetailSerializer
 
 
+class StandardResultsSetPagination(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = 'page_size'
+    max_page_size = 100
 
-class PoliticianViewSet(viewsets.ModelViewSet):
+
+class PoliticianListView(generics.ListAPIView):
     queryset = Politician.objects.all()
     serializer_class = PoliticianSerializer
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [AllowAny]
+    pagination_class = StandardResultsSetPagination
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    
+    # Filter by exact fields
+    filterset_fields = ['party', 'party__slug', 'is_active', 'location']
+    
+    # Search across these fields
+    search_fields = ['name', 'biography', 'education', 'party__name', 'location', 'party_position']
+    
+    # Allow ordering by these fields
+    ordering_fields = ['name', 'age', 'created_at', 'views']
+    ordering = ['-views']  # Default ordering by most viewed
 
-    def get_serializer_class(self):
-        if self.action == 'retrieve':
-            return PoliticianDetailSerializer
-        return super().get_serializer_class()
+
+class PoliticianDetailView(generics.RetrieveAPIView):
+    queryset = Politician.objects.all()
+    serializer_class = PoliticianDetailSerializer
+    permission_classes = [AllowAny]
+    lookup_field = 'slug'
 
 
-class RatingViewSet(viewsets.ModelViewSet):
-    queryset = Rating.objects.all()
+class PoliticianRatingListCreateView(generics.ListCreateAPIView):
     serializer_class = RatingSerializer
     authentication_classes = [JWTAuthentication]
-    permission_classes = [IsAuthenticated]
+    pagination_class = StandardResultsSetPagination
+    filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
+    
+    filterset_fields = ['score']
+    ordering_fields = ['created_at', 'updated_at', 'score']
+    ordering = ['-created_at']
 
     def get_permissions(self):
-        if self.action in ['list', 'retrieve', 'politician_ratings']:
+        if self.request.method == 'GET':
             return [AllowAny()]
         return [IsAuthenticated()]
 
-    def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+    def get_queryset(self):
+        return Rating.objects.filter(
+            politician__slug=self.kwargs["slug"]
+        ).select_related('user', 'politician')
 
     def create(self, request, *args, **kwargs):
-        politician_id = request.data.get('politician')
+        politician_slug = self.kwargs["slug"]
+        politician = get_object_or_404(Politician, slug=politician_slug)
         
-        if not politician_id:
-            return Response(
-                {'error': 'politician_id is required'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        # check if politician exists
-        try:
-            politician = Politician.objects.get(id=politician_id)
-        except Politician.DoesNotExist:
-            return Response(
-                {'error': f'Politician with id {politician_id} does not exist'},
-                status=status.HTTP_404_NOT_FOUND
-            )
-        
-        # check if user already rated this politician
-        existing_rating = Rating.objects.filter(
+        # Check if user already rated
+        existing = Rating.objects.filter(
             politician=politician,
             user=request.user
         ).first()
         
-        if existing_rating:
-            # update existing rating
-            serializer = self.get_serializer(existing_rating, data=request.data, partial=False)
+        if existing:
+            # Update existing rating
+            serializer = self.get_serializer(existing, data=request.data, partial=False)
             serializer.is_valid(raise_exception=True)
-            self.perform_update(serializer)
-            return Response(
-                serializer.data,
-                status=status.HTTP_200_OK
-            )
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
         
-        # create new rating
+        # Create new rating
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        return Response(
-            serializer.data,
-            status=status.HTTP_201_CREATED
-        )
+        serializer.save(user=request.user, politician=politician)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+class PoliticianRatingDetailView(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = RatingSerializer
+    authentication_classes = [JWTAuthentication]
+
+    def get_permissions(self):
+        if self.request.method == 'GET':
+            return [AllowAny()]
+        return [IsAuthenticated()]
+
+    def get_queryset(self):
+        return Rating.objects.all()
 
     def perform_update(self, serializer):
+        rating = self.get_object()
+        if rating.user != self.request.user:
+            raise PermissionDenied("You can only modify your own rating.")
         serializer.save()
 
-    def destroy(self, request, *args, **kwargs):
-        rating = self.get_object()
-        if rating.user != request.user:
-            return Response(
-                {'error': 'You can only delete your own ratings'},
-                status=status.HTTP_403_FORBIDDEN
-            )
-        return super().destroy(request, *args, **kwargs)
-
-    def update(self, request, *args, **kwargs):
-        rating = self.get_object()
-        if rating.user != request.user:
-            return Response(
-                {'error': 'You can only update your own ratings'},
-                status=status.HTTP_403_FORBIDDEN
-            )
-        return super().update(request, *args, **kwargs)
-
-    @action(detail=False, methods=['get'], permission_classes=[AllowAny])
-    def politician_ratings(self, request):
-        politician_id = request.query_params.get('politician_id')
-        
-        if not politician_id:
-            return Response(
-                {'error': 'politician_id query parameter is required'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
-        try:
-            politician = Politician.objects.get(id=politician_id)
-        except Politician.DoesNotExist:
-            return Response(
-                {'error': f'Politician with id {politician_id} does not exist'},
-                status=status.HTTP_404_NOT_FOUND
-            )
-        
-        # get all ratings for the politician, ordered by most recent
-        ratings = Rating.objects.filter(politician=politician).order_by('-created_at')
-        
-        # Pagination
-        page = self.paginate_queryset(ratings)
-        if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
-        
-        serializer = self.get_serializer(ratings, many=True)
-        return Response(serializer.data)
-
-    @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated])
-    def my_ratings(self, request):
-        ratings = Rating.objects.filter(user=request.user).order_by('-created_at')
-        
-        page = self.paginate_queryset(ratings)
-        if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
-        
-        serializer = self.get_serializer(ratings, many=True)
-        return Response(serializer.data)
+    def perform_destroy(self, instance):
+        if instance.user != self.request.user:
+            raise PermissionDenied("You can only delete your own rating.")
+        instance.delete()
