@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Users, AlertCircle, Loader, Search, Star } from "lucide-react";
 
@@ -16,6 +16,7 @@ export default function Home() {
   });
 
   const baseUrl = import.meta.env.VITE_BASE_URL;
+  const searchInputRef = useRef(null);
 
   useEffect(() => {
     const fetchPoliticians = async () => {
@@ -82,10 +83,10 @@ export default function Home() {
       }
     };
 
-    // Debounce search
+    // Increased debounce delay to 600ms to reduce backend requests
     const timeoutId = setTimeout(() => {
       fetchPoliticians();
-    }, 300);
+    }, 600);
 
     return () => clearTimeout(timeoutId);
   }, [baseUrl, searchTerm, sortBy]);
@@ -136,7 +137,17 @@ export default function Home() {
     navigate(`/politician/${slug}`);
   };
 
-  if (loading) {
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
+    // Keep focus on the input after state update
+    if (searchInputRef.current) {
+      setTimeout(() => {
+        searchInputRef.current.focus();
+      }, 0);
+    }
+  };
+
+  if (loading && politicians.length === 0) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-black">
         <div className="text-center">
@@ -147,7 +158,7 @@ export default function Home() {
     );
   }
 
-  if (error) {
+  if (error && politicians.length === 0) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-black">
         <div className="text-center p-6 bg-red-900/20 border border-red-700 rounded-lg max-w-md">
@@ -188,12 +199,16 @@ export default function Home() {
                 size={20}
               />
               <input
+                ref={searchInputRef}
                 type="text"
                 placeholder="Search by name or party..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={handleSearchChange}
                 className="w-full bg-gray-950 text-white pl-12 pr-4 py-3 sm:py-4 rounded-lg border border-gray-800 focus:outline-none focus:border-pink-600 focus:ring-1 focus:ring-pink-600 transition text-sm sm:text-base placeholder-gray-600"
               />
+              {loading && politicians.length > 0 && (
+                <Loader className="absolute right-4 top-4 w-5 h-5 animate-spin text-pink-600" />
+              )}
             </div>
             <select
               value={sortBy}
