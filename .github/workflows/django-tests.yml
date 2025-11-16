@@ -1,0 +1,47 @@
+name: Django Tests
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    env:
+      DJANGO_SETTINGS_MODULE: politician_recorder.settings
+      CLOUDINARY_CLOUD_NAME: "fake"
+      CLOUDINARY_API_KEY: "fake"
+      CLOUDINARY_API_SECRET: "fake"
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+          pip install pytest pytest-django
+
+      - name: Run migrations
+        run: |
+          cd backend
+          python manage.py migrate --noinput
+
+      - name: Run collectstatic
+        run: |
+          cd backend
+          python manage.py collectstatic --noinput
+
+      - name: Run tests with pytest
+        run: |
+          cd backend
+          python -m pytest -v
