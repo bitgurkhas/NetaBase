@@ -25,7 +25,7 @@ export default function PoliticianDetail() {
   const [submitting, setSubmitting] = useState(false);
   const [isEditingMode, setIsEditingMode] = useState(false);
 
-  const { id } = useParams();
+  const { slug } = useParams();
   const navigate = useNavigate();
   const baseUrl = import.meta.env.VITE_BASE_URL;
   const token = localStorage.getItem("token");
@@ -35,45 +35,52 @@ export default function PoliticianDetail() {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const [politicianRes, ratingsRes] = await Promise.all([
-          axios.get(`${baseUrl}/politicians/${id}/`),
-          axios.get(
-            `${baseUrl}/ratings/politician_ratings/?politician_id=${id}`
-          ),
-        ]);
-
+        
+        // Fetch politician details using slug
+        const politicianRes = await axios.get(`${baseUrl}/api/politicians/${slug}/`);
         setPolitician(politicianRes.data);
-        setRatings(ratingsRes.data);
 
-        const existingReview = ratingsRes.data.find(
+        // Fetch ratings for this politician using slug
+        const ratingsRes = await axios.get(`${baseUrl}/api/politicians/${slug}/ratings/`);
+        
+        // Handle paginated response if needed
+        const ratingsData = ratingsRes.data.results || ratingsRes.data;
+        setRatings(ratingsData);
+
+        // Find user's existing review
+        const existingReview = ratingsData.find(
           (r) => String(r.user_id) === String(userId)
         );
+        
         if (existingReview) {
           setUserReview(existingReview);
           setScore(existingReview.score);
-          setComment(existingReview.comment);
+          setComment(existingReview.comment || "");
         }
       } catch (err) {
         console.error("Error fetching data:", err);
-        setError("Failed to load politician details.");
+        setError(err.response?.data?.message || "Failed to load politician details.");
       } finally {
         setLoading(false);
       }
     };
-    fetchData();
-  }, [id, baseUrl, userId]);
+    
+    if (slug) {
+      fetchData();
+    }
+  }, [slug, baseUrl, userId]);
 
   const onSubmit = (e) => {
     handleReviewSubmit(
       e,
-      { token, baseUrl, id, userId, score, comment, userReview },
+      { token, baseUrl, slug, userId, score, comment, userReview },
       { setSubmitting, setRatings, setUserReview, setIsEditingMode }
     );
   };
 
   const onDelete = () => {
     handleReviewDelete(
-      { token, baseUrl, id, userReview },
+      { token, baseUrl, slug, userReview },
       { setRatings, setUserReview, setScore, setComment, setIsEditingMode }
     );
   };

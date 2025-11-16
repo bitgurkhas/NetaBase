@@ -76,7 +76,7 @@ export default function ReviewForm({
                   type="button"
                   disabled={submitting}
                   onClick={() => onScoreChange(star)}
-                  className="transition-transform hover:scale-110"
+                  className="transition-transform hover:scale-110 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <Star
                     size={32}
@@ -101,7 +101,7 @@ export default function ReviewForm({
               disabled={submitting}
               rows={4}
               placeholder="Share your thoughts..."
-              className="w-full p-4 bg-white/5 border border-white/10 rounded-2xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 backdrop-blur-md resize-none"
+              className="w-full p-4 bg-white/5 border border-white/10 rounded-2xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 backdrop-blur-md resize-none disabled:opacity-50 disabled:cursor-not-allowed"
             />
           </div>
 
@@ -109,7 +109,7 @@ export default function ReviewForm({
             <button
               type="submit"
               disabled={submitting}
-              className="px-6 py-3 bg-linear-to-r from-green-500 to-emerald-600 hover:from-green-400 hover:to-emerald-500 rounded-xl font-semibold text-white shadow-lg hover:shadow-green-500/25 transition-all disabled:opacity-50"
+              className="px-6 py-3 bg-linear-to-r from-green-500 to-emerald-600 hover:from-green-400 hover:to-emerald-500 rounded-xl font-semibold text-white shadow-lg hover:shadow-green-500/25 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {submitting
                 ? "Submitting..."
@@ -122,7 +122,7 @@ export default function ReviewForm({
                 type="button"
                 onClick={onCancel}
                 disabled={submitting}
-                className="px-6 py-3 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 rounded-xl font-medium text-gray-300 transition-all"
+                className="px-6 py-3 bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 rounded-xl font-medium text-gray-300 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Cancel
               </button>

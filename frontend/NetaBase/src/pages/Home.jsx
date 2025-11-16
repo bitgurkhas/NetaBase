@@ -5,11 +5,15 @@ import { Users, AlertCircle, Loader, Search, Star } from "lucide-react";
 export default function Home() {
   const navigate = useNavigate();
   const [politicians, setPoliticians] = useState([]);
-  const [filteredPoliticians, setFilteredPoliticians] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState("name");
+  const [pagination, setPagination] = useState({
+    count: 0,
+    next: null,
+    previous: null,
+  });
 
   const baseUrl = import.meta.env.VITE_BASE_URL;
 
@@ -17,11 +21,57 @@ export default function Home() {
     const fetchPoliticians = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`${baseUrl}/politicians/`);
+        
+        // Build query parameters
+        const params = new URLSearchParams();
+        
+        // Add search parameter
+        if (searchTerm.trim()) {
+          params.append("search", searchTerm.trim());
+        }
+        
+        // Add ordering parameter
+        if (sortBy) {
+          let orderingValue = "";
+          switch (sortBy) {
+            case "name":
+              orderingValue = "name";
+              break;
+            case "name_desc":
+              orderingValue = "-name";
+              break;
+            case "rating_high":
+              orderingValue = "-average_rating";
+              break;
+            case "rating_low":
+              orderingValue = "average_rating";
+              break;
+            case "age_old":
+              orderingValue = "-age";
+              break;
+            case "age_young":
+              orderingValue = "age";
+              break;
+            default:
+              orderingValue = "name";
+          }
+          params.append("ordering", orderingValue);
+        }
+        
+        const url = `${baseUrl}/api/politicians/?${params.toString()}`;
+        const response = await fetch(url);
+        
         if (!response.ok) throw new Error("Failed to fetch politicians");
+        
         const data = await response.json();
-        setPoliticians(data);
-        setFilteredPoliticians(data);
+        
+        // Handle paginated response
+        setPoliticians(data.results || []);
+        setPagination({
+          count: data.count || 0,
+          next: data.next || null,
+          previous: data.previous || null,
+        });
         setError(null);
       } catch (err) {
         console.error("Error fetching politicians:", err);
@@ -32,50 +82,20 @@ export default function Home() {
       }
     };
 
-    fetchPoliticians();
-  }, []);
+    // Debounce search
+    const timeoutId = setTimeout(() => {
+      fetchPoliticians();
+    }, 300);
 
-  // Handle search and filtering
-  useEffect(() => {
-    let filtered = [...politicians];
-
-    if (searchTerm.trim() !== "") {
-      filtered = filtered.filter(
-        (politician) =>
-          politician.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          politician.party_name
-            ?.toLowerCase()
-            .includes(searchTerm.toLowerCase())
-      );
-    }
-
-    // Handle sorting
-    if (sortBy === "name") {
-      filtered.sort((a, b) => a.name.localeCompare(b.name));
-    } else if (sortBy === "rating_high") {
-      filtered.sort(
-        (a, b) =>
-          parseFloat(b.average_rating || 0) - parseFloat(a.average_rating || 0)
-      );
-    } else if (sortBy === "rating_low") {
-      filtered.sort(
-        (a, b) =>
-          parseFloat(a.average_rating || 0) - parseFloat(b.average_rating || 0)
-      );
-    } else if (sortBy === "age_old") {
-      filtered.sort((a, b) => (b.age || 0) - (a.age || 0));
-    } else if (sortBy === "age_young") {
-      filtered.sort((a, b) => (a.age || 0) - (b.age || 0));
-    }
-
-    setFilteredPoliticians(filtered);
-  }, [searchTerm, sortBy, politicians]);
+    return () => clearTimeout(timeoutId);
+  }, [baseUrl, searchTerm, sortBy]);
 
   const StarRating = ({ rating, ratedBy }) => {
     const stars = [];
-    const fullStars = Math.floor(rating);
-    const hasHalfStar = rating % 1 >= 0.25;
-    const halfStarFill = ((rating % 1) * 100).toFixed(0);
+    const numRating = parseFloat(rating) || 0;
+    const fullStars = Math.floor(numRating);
+    const hasHalfStar = numRating % 1 >= 0.25;
+    const halfStarFill = ((numRating % 1) * 100).toFixed(0);
 
     for (let i = 0; i < 5; i++) {
       if (i < fullStars) {
@@ -112,8 +132,8 @@ export default function Home() {
     );
   };
 
-  const handleCardClick = (id) => {
-    navigate(`/politician/${id}`);
+  const handleCardClick = (slug) => {
+    navigate(`/politician/${slug}`);
   };
 
   if (loading) {
@@ -181,21 +201,29 @@ export default function Home() {
               className="bg-gray-950 text-white px-4 py-3 sm:py-4 rounded-lg border border-gray-800 focus:outline-none focus:border-pink-600 focus:ring-1 focus:ring-pink-600 transition cursor-pointer text-sm sm:text-base"
             >
               <option value="name">Name (A-Z)</option>
+              <option value="name_desc">Name (Z-A)</option>
               <option value="rating_high">Rating (High to Low)</option>
               <option value="rating_low">Rating (Low to High)</option>
               <option value="age_old">Age (Oldest First)</option>
               <option value="age_young">Age (Youngest First)</option>
             </select>
           </div>
+          
+          {/* Results count */}
+          {pagination.count > 0 && (
+            <p className="text-sm text-gray-400">
+              Found {pagination.count} politician{pagination.count !== 1 ? "s" : ""}
+            </p>
+          )}
         </div>
 
         {/* Politicians Grid */}
-        {filteredPoliticians.length > 0 ? (
+        {politicians.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-            {filteredPoliticians.map((politician) => (
+            {politicians.map((politician) => (
               <div
-                key={politician.id}
-                onClick={() => handleCardClick(politician.id)}
+                key={politician.slug}
+                onClick={() => handleCardClick(politician.slug)}
                 className="group cursor-pointer rounded-xl overflow-hidden hover:transform hover:scale-105 transition-all duration-300 border border-gray-800 hover:border-pink-600"
               >
                 <div className="relative h-64 sm:h-72 bg-linear-to-br from-gray-800 to-gray-900 overflow-hidden">
@@ -211,11 +239,11 @@ export default function Home() {
                     </div>
                   )}
 
-                  {politician.average_rating > 0 && (
+                  {politician.average_rating && parseFloat(politician.average_rating) > 0 && (
                     <div className="absolute top-3 right-3 sm:top-4 sm:right-4 bg-black/80 backdrop-blur-sm px-3 py-2 rounded-lg shadow-lg">
                       <StarRating
                         rating={politician.average_rating}
-                        ratedBy={politician.rated_by}
+                        ratedBy={politician.rated_by || 0}
                       />
                     </div>
                   )}
@@ -242,47 +270,15 @@ export default function Home() {
                       </p>
                     )}
 
-                    {politician.education && (
+                    {politician.views !== undefined && (
                       <p>
                         <span className="text-gray-300 font-medium">
-                          Education:
+                          Views:
                         </span>{" "}
-                        {politician.education}
-                      </p>
-                    )}
-
-                    {politician.party_position && (
-                      <p>
-                        <span className="text-gray-300 font-medium">
-                          Position:
-                        </span>{" "}
-                        {politician.party_position}
+                        {politician.views}
                       </p>
                     )}
                   </div>
-
-                  {politician.biography && (
-                    <p className="text-xs sm:text-sm text-gray-500 line-clamp-2 mb-4">
-                      {politician.biography}
-                    </p>
-                  )}
-
-                  {(politician.criminal_record || politician.criticism) && (
-                    <div className="pt-3 border-t border-gray-800 space-y-1 text-xs">
-                      {politician.criminal_record && (
-                        <p className="text-red-400">
-                          <span className="font-semibold">Record:</span>{" "}
-                          {politician.criminal_record}
-                        </p>
-                      )}
-                      {politician.criticism && (
-                        <p className="text-yellow-400">
-                          <span className="font-semibold">Criticism:</span>{" "}
-                          {politician.criticism}
-                        </p>
-                      )}
-                    </div>
-                  )}
                 </div>
               </div>
             ))}

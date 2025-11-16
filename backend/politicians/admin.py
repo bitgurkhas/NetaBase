@@ -110,8 +110,7 @@ class PoliticianAdmin(admin.ModelAdmin):
 class PartyAdmin(admin.ModelAdmin):
     list_display = ("flag_preview", "name", "short_name", "created_at")
     search_fields = ("name", "short_name")
-    readonly_fields = ("flag_preview", "slug", "created_at", "updated_at")
-    prepopulated_fields = {"slug": ("name",)}
+    readonly_fields = ("flag_preview", "created_at", "updated_at")
     list_per_page = 25
 
     def flag_preview(self, obj):
