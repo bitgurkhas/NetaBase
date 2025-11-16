@@ -4,10 +4,28 @@ import {
   Briefcase,
   GraduationCap,
   AlertTriangle,
+  MapPin,
 } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function PoliticianInfo({ politician }) {
+  const renderRating = () => {
+    if (!politician.average_rating) return null;
+    
+    const rating = parseFloat(politician.average_rating);
+    if (isNaN(rating) || rating === 0) return null;
+
+    return (
+      <motion.div
+        whileHover={{ scale: 1.05 }}
+        className="flex items-center gap-2 text-yellow-400 bg-yellow-400/10 backdrop-blur-md w-fit px-4 py-2 rounded-2xl font-bold shadow-lg"
+      >
+        <Star className="fill-yellow-400" size={18} />
+        <span>{rating.toFixed(1)}</span>
+      </motion.div>
+    );
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -43,15 +61,7 @@ export default function PoliticianInfo({ politician }) {
             )}
           </div>
 
-          {politician.average_rating && (
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              className="flex items-center gap-2 text-yellow-400 bg-yellow-400/10 backdrop-blur-md w-fit px-4 py-2 rounded-2xl font-bold shadow-lg"
-            >
-              <Star className="fill-yellow-400" size={18} />
-              <span>{politician.average_rating.toFixed(1)}</span>
-            </motion.div>
-          )}
+          {renderRating()}
         </div>
       </div>
 
@@ -91,7 +101,7 @@ export default function PoliticianInfo({ politician }) {
       >
         <h3 className="text-xl font-bold text-white mb-4">Basic Information</h3>
 
-        <div className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {politician.age && (
             <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-2xl p-4 flex items-center gap-3">
               <User className="text-blue-400" size={20} />
@@ -102,8 +112,30 @@ export default function PoliticianInfo({ politician }) {
             </div>
           )}
 
+          {politician.location && (
+            <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-2xl p-4 flex items-center gap-3">
+              <MapPin className="text-blue-400" size={20} />
+              <div>
+                <p className="text-sm text-gray-400">Location</p>
+                <p className="text-xl font-bold text-white">{politician.location}</p>
+              </div>
+            </div>
+          )}
+
+          {politician.party_position && (
+            <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-2xl p-4 flex items-center gap-3 md:col-span-2">
+              <Briefcase className="text-blue-400" size={20} />
+              <div>
+                <p className="text-sm text-gray-400">Party Position</p>
+                <p className="text-xl font-bold text-white">
+                  {politician.party_position}
+                </p>
+              </div>
+            </div>
+          )}
+
           {politician.education && (
-            <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-2xl p-5">
+            <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-2xl p-5 md:col-span-2">
               <div className="flex items-center gap-3 mb-3">
                 <GraduationCap className="text-blue-400" size={20} />
                 <p className="text-sm text-gray-400">Education</p>
@@ -119,18 +151,6 @@ export default function PoliticianInfo({ politician }) {
                     </li>
                   ))}
               </ul>
-            </div>
-          )}
-
-          {politician.party_position && (
-            <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-2xl p-4 flex items-center gap-3">
-              <Briefcase className="text-blue-400" size={20} />
-              <div>
-                <p className="text-sm text-gray-400">Party Position</p>
-                <p className="text-xl font-bold text-white">
-                  {politician.party_position}
-                </p>
-              </div>
             </div>
           )}
         </div>
@@ -176,6 +196,28 @@ export default function PoliticianInfo({ politician }) {
               </ul>
             </div>
           )}
+        </motion.div>
+      )}
+
+      {politician.is_active !== undefined && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.7 }}
+          className="mt-6"
+        >
+          <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full ${
+            politician.is_active 
+              ? 'bg-green-500/20 text-green-400 border border-green-500/30' 
+              : 'bg-gray-500/20 text-gray-400 border border-gray-500/30'
+          }`}>
+            <div className={`w-2 h-2 rounded-full ${
+              politician.is_active ? 'bg-green-400' : 'bg-gray-400'
+            }`} />
+            <span className="text-sm font-medium">
+              {politician.is_active ? 'Currently Active' : 'Inactive'}
+            </span>
+          </div>
         </motion.div>
       )}
     </motion.div>

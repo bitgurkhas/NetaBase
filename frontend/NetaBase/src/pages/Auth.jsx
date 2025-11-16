@@ -39,7 +39,7 @@ export default function AuthPage() {
     }
 
     try {
-      const url = isLogin ? `${baseUrl}/login/` : `${baseUrl}/register/`;
+      const url = isLogin ? `${baseUrl}/api/login/` : `${baseUrl}/api/register/`;
       const data = isLogin
         ? { username: formData.username, password: formData.password }
         : { 

@@ -3,7 +3,7 @@ import Swal from "sweetalert2";
 
 export async function handleReviewSubmit(
   e,
-  { token, baseUrl, id, userId, score, comment, userReview },
+  { token, baseUrl, slug, userId, score, comment, userReview },
   { setSubmitting, setRatings, setUserReview, setIsEditingMode }
 ) {
   e.preventDefault();
@@ -22,13 +22,13 @@ export async function handleReviewSubmit(
     setSubmitting(true);
     const headers = { Authorization: `Bearer ${token}` };
     const payload = {
-      politician: parseInt(id),
       score: parseInt(score),
-      comment,
+      comment: comment || null,
     };
 
     if (userReview) {
-      await axios.put(`${baseUrl}/ratings/${userReview.id}/`, payload, {
+      // Update existing review
+      await axios.put(`${baseUrl}/api/ratings/${userReview.id}/`, payload, {
         headers,
       });
       Swal.fire({
@@ -38,7 +38,10 @@ export async function handleReviewSubmit(
         confirmButtonColor: "#10b981",
       });
     } else {
-      await axios.post(`${baseUrl}/ratings/`, payload, { headers });
+      // Create new review
+      await axios.post(`${baseUrl}/api/politicians/${slug}/ratings/`, payload, {
+        headers,
+      });
       Swal.fire({
         icon: "success",
         title: "Submitted!",
@@ -47,21 +50,27 @@ export async function handleReviewSubmit(
       });
     }
 
+    // Refresh ratings list
     const { data } = await axios.get(
-      `${baseUrl}/ratings/politician_ratings/?politician_id=${id}`
+      `${baseUrl}/api/politicians/${slug}/ratings/`
     );
-    setRatings(data);
-    const updatedReview = data.find(
+    const ratingsData = data.results || data;
+    setRatings(ratingsData);
+    
+    const updatedReview = ratingsData.find(
       (r) => String(r.user_id) === String(userId)
     );
     setUserReview(updatedReview);
     setIsEditingMode(false);
   } catch (err) {
     console.error("Error submitting review:", err);
+    const errorMessage = err.response?.data?.message || 
+                        err.response?.data?.detail || 
+                        "Failed to submit review. Please try again.";
     Swal.fire({
       icon: "error",
       title: "Error",
-      text: "Failed to submit review. Please try again.",
+      text: errorMessage,
       confirmButtonColor: "#ef4444",
     });
   } finally {
@@ -70,7 +79,7 @@ export async function handleReviewSubmit(
 }
 
 export async function handleReviewDelete(
-  { token, baseUrl, id, userReview },
+  { token, baseUrl, slug, userReview },
   { setRatings, setUserReview, setScore, setComment, setIsEditingMode }
 ) {
   if (!userReview) return;
@@ -89,7 +98,7 @@ export async function handleReviewDelete(
   if (result.isConfirmed) {
     try {
       const headers = { Authorization: `Bearer ${token}` };
-      await axios.delete(`${baseUrl}/ratings/${userReview.id}/`, { headers });
+      await axios.delete(`${baseUrl}/api/ratings/${userReview.id}/`, { headers });
 
       Swal.fire({
         icon: "success",
@@ -98,20 +107,25 @@ export async function handleReviewDelete(
         confirmButtonColor: "#10b981",
       });
 
+      // Refresh ratings list
       const { data } = await axios.get(
-        `${baseUrl}/ratings/politician_ratings/?politician_id=${id}`
+        `${baseUrl}/api/politicians/${slug}/ratings/`
       );
-      setRatings(data);
+      const ratingsData = data.results || data;
+      setRatings(ratingsData);
       setUserReview(null);
       setScore(1);
       setComment("");
       setIsEditingMode(false);
     } catch (err) {
       console.error("Error deleting review:", err);
+      const errorMessage = err.response?.data?.message || 
+                          err.response?.data?.detail || 
+                          "Failed to delete review. Please try again.";
       Swal.fire({
         icon: "error",
         title: "Error",
-        text: "Failed to delete review. Please try again.",
+        text: errorMessage,
         confirmButtonColor: "#ef4444",
       });
     }

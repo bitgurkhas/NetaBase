@@ -68,7 +68,7 @@ export default function PoliticalPartiesSection() {
         <div className="mb-16">
           <h1 className="text-5xl font-bold text-white mb-4">Political Parties</h1>
           <p className="text-gray-400 text-lg">Explore the major political parties contesting in Nepal</p>
-          <div className="h-1 w-24 bg-gradient-to-r from-pink-500 to-pink-600 rounded-full mt-6"></div>
+          <div className="h-1 w-24 bg-linear-to-r from-pink-500 to-pink-600 rounded-full mt-6"></div>
         </div>
 
         {/* Party Grid */}
@@ -139,7 +139,7 @@ export default function PoliticalPartiesSection() {
             >
               <div className="flex gap-6">
                 <div
-                  className="flex-shrink-0 w-32 h-32 rounded-lg overflow-hidden flex items-center justify-center"
+                  className="shrink-0 w-32 h-32 rounded-lg overflow-hidden flex items-center justify-center"
                   style={{ backgroundColor: `${selectedParty.color}15` }}
                 >
                   <img 
