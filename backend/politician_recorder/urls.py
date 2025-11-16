@@ -28,6 +28,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('user_api.urls')),
     path('api/', include('politicians.urls')),
+    path('api/news/', include('news_api.urls')),
     
     
     # Swagger and ReDoc routes

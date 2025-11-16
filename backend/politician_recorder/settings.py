@@ -48,9 +48,11 @@ INSTALLED_APPS = [
     'corsheaders',
     'drf_yasg',
     'django_filters',
+    
     'user_api',
     'politicians',
-    
+    'news_api',
+
 ]
 
 MIDDLEWARE = [
