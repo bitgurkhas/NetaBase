@@ -1,6 +1,14 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Users, AlertCircle, Loader, Search, Star } from "lucide-react";
+import {
+  Users,
+  AlertCircle,
+  Loader,
+  Search,
+  Star,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 
 export default function Home() {
   const navigate = useNavigate();
@@ -9,6 +17,7 @@ export default function Home() {
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState("name");
+  const [currentPage, setCurrentPage] = useState(1);
   const [pagination, setPagination] = useState({
     count: 0,
     next: null,
@@ -17,20 +26,27 @@ export default function Home() {
 
   const baseUrl = import.meta.env.VITE_BASE_URL;
   const searchInputRef = useRef(null);
+  const pageSize = 12;
 
   useEffect(() => {
     const fetchPoliticians = async () => {
       try {
         setLoading(true);
-        
+
         // Build query parameters
         const params = new URLSearchParams();
-        
+
+        // Add page size
+        params.append("page_size", pageSize);
+
+        // Add page number
+        params.append("page", currentPage);
+
         // Add search parameter
         if (searchTerm.trim()) {
           params.append("search", searchTerm.trim());
         }
-        
+
         // Add ordering parameter
         if (sortBy) {
           let orderingValue = "";
@@ -58,14 +74,14 @@ export default function Home() {
           }
           params.append("ordering", orderingValue);
         }
-        
+
         const url = `${baseUrl}/api/politicians/?${params.toString()}`;
         const response = await fetch(url);
-        
+
         if (!response.ok) throw new Error("Failed to fetch politicians");
-        
+
         const data = await response.json();
-        
+
         // Handle paginated response
         setPoliticians(data.results || []);
         setPagination({
@@ -89,7 +105,12 @@ export default function Home() {
     }, 600);
 
     return () => clearTimeout(timeoutId);
-  }, [baseUrl, searchTerm, sortBy]);
+  }, [baseUrl, searchTerm, sortBy, currentPage]);
+
+  // Reset to page 1 when search or sort changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, sortBy]);
 
   const StarRating = ({ rating, ratedBy }) => {
     const stars = [];
@@ -146,6 +167,22 @@ export default function Home() {
       }, 0);
     }
   };
+
+  const handlePreviousPage = () => {
+    if (pagination.previous) {
+      setCurrentPage((prev) => prev - 1);
+      window.scrollTo(0, 0);
+    }
+  };
+
+  const handleNextPage = () => {
+    if (pagination.next) {
+      setCurrentPage((prev) => prev + 1);
+      window.scrollTo(0, 0);
+    }
+  };
+
+  const totalPages = Math.ceil(pagination.count / pageSize);
 
   if (loading && politicians.length === 0) {
     return (
@@ -223,81 +260,125 @@ export default function Home() {
               <option value="age_young">Age (Youngest First)</option>
             </select>
           </div>
-          
-          {/* Results count */}
+
+          {/* Results count and page info */}
           {pagination.count > 0 && (
-            <p className="text-sm text-gray-400">
-              Found {pagination.count} politician{pagination.count !== 1 ? "s" : ""}
-            </p>
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+              <p className="text-sm text-gray-400">
+                Found {pagination.count} politician
+                {pagination.count !== 1 ? "s" : ""}
+              </p>
+              {totalPages > 1 && (
+                <p className="text-sm text-gray-400">
+                  Page {currentPage} of {totalPages}
+                </p>
+              )}
+            </div>
           )}
         </div>
 
         {/* Politicians Grid */}
         {politicians.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-            {politicians.map((politician) => (
-              <div
-                key={politician.slug}
-                onClick={() => handleCardClick(politician.slug)}
-                className="group cursor-pointer rounded-xl overflow-hidden hover:transform hover:scale-105 transition-all duration-300 border border-gray-800 hover:border-pink-600"
-              >
-                <div className="relative h-64 sm:h-72 bg-linear-to-br from-gray-800 to-gray-900 overflow-hidden">
-                  {politician.photo ? (
-                    <img
-                      src={politician.photo}
-                      alt={politician.name}
-                      className="w-full h-full object-cover group-hover:brightness-125 transition duration-300"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-gray-900">
-                      <Users size={64} className="text-gray-700" />
-                    </div>
-                  )}
-
-                  {politician.average_rating && parseFloat(politician.average_rating) > 0 && (
-                    <div className="absolute top-3 right-3 sm:top-4 sm:right-4 bg-black/80 backdrop-blur-sm px-3 py-2 rounded-lg shadow-lg">
-                      <StarRating
-                        rating={politician.average_rating}
-                        ratedBy={politician.rated_by || 0}
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+              {politicians.map((politician) => (
+                <div
+                  key={politician.slug}
+                  onClick={() => handleCardClick(politician.slug)}
+                  className="group cursor-pointer rounded-xl overflow-hidden hover:transform hover:scale-105 transition-all duration-300 border border-gray-800 hover:border-pink-600"
+                >
+                  <div className="relative h-64 sm:h-72 bg-linear-to-br from-gray-800 to-gray-900 overflow-hidden">
+                    {politician.photo ? (
+                      <img
+                        src={politician.photo}
+                        alt={politician.name}
+                        className="w-full h-full object-cover group-hover:brightness-125 transition duration-300"
                       />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center bg-gray-900">
+                        <Users size={64} className="text-gray-700" />
+                      </div>
+                    )}
+
+                    {politician.average_rating &&
+                      parseFloat(politician.average_rating) > 0 && (
+                        <div className="absolute top-3 right-3 sm:top-4 sm:right-4 bg-black/80 backdrop-blur-sm px-3 py-2 rounded-lg shadow-lg">
+                          <StarRating
+                            rating={politician.average_rating}
+                            ratedBy={politician.rated_by || 0}
+                          />
+                        </div>
+                      )}
+
+                    <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition duration-300"></div>
+                  </div>
+
+                  <div className="bg-gray-950 p-4 sm:p-6">
+                    <h3 className="font-bold text-lg sm:text-xl mb-1 line-clamp-2">
+                      {politician.name}
+                    </h3>
+
+                    {politician.party_name && (
+                      <p className="text-pink-400 text-xs sm:text-sm font-semibold mb-3">
+                        {politician.party_name}
+                      </p>
+                    )}
+
+                    <div className="space-y-2 mb-4 text-xs sm:text-sm text-gray-400">
+                      {politician.age && (
+                        <p>
+                          <span className="text-gray-300 font-medium">
+                            Age:
+                          </span>{" "}
+                          {politician.age} years
+                        </p>
+                      )}
+
+                      {politician.views !== undefined && (
+                        <p>
+                          <span className="text-gray-300 font-medium">
+                            Views:
+                          </span>{" "}
+                          {politician.views}
+                        </p>
+                      )}
                     </div>
-                  )}
-
-                  <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition duration-300"></div>
-                </div>
-
-                <div className="bg-gray-950 p-4 sm:p-6">
-                  <h3 className="font-bold text-lg sm:text-xl mb-1 line-clamp-2">
-                    {politician.name}
-                  </h3>
-
-                  {politician.party_name && (
-                    <p className="text-pink-400 text-xs sm:text-sm font-semibold mb-3">
-                      {politician.party_name}
-                    </p>
-                  )}
-
-                  <div className="space-y-2 mb-4 text-xs sm:text-sm text-gray-400">
-                    {politician.age && (
-                      <p>
-                        <span className="text-gray-300 font-medium">Age:</span>{" "}
-                        {politician.age} years
-                      </p>
-                    )}
-
-                    {politician.views !== undefined && (
-                      <p>
-                        <span className="text-gray-300 font-medium">
-                          Views:
-                        </span>{" "}
-                        {politician.views}
-                      </p>
-                    )}
                   </div>
                 </div>
+              ))}
+            </div>
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="mt-12 flex justify-center items-center gap-4">
+                <button
+                  onClick={handlePreviousPage}
+                  disabled={!pagination.previous}
+                  className="flex items-center gap-2 px-4 sm:px-6 py-3 bg-gray-950 border border-gray-800 rounded-lg text-white disabled:opacity-50 disabled:cursor-not-allowed hover:border-pink-600 hover:bg-gray-900 transition-all duration-300 text-sm sm:text-base"
+                >
+                  <ChevronLeft size={20} />
+                  <span className="hidden sm:inline">Previous</span>
+                </button>
+
+                <div className="flex items-center gap-2 px-4 py-3 bg-gray-950 border border-gray-800 rounded-lg text-gray-400 text-sm sm:text-base">
+                  <span className="font-semibold text-white">
+                    {currentPage}
+                  </span>
+                  <span>/</span>
+                  <span>{totalPages}</span>
+                </div>
+
+                <button
+                  onClick={handleNextPage}
+                  disabled={!pagination.next}
+                  className="flex items-center gap-2 px-4 sm:px-6 py-3 bg-gray-950 border border-gray-800 rounded-lg text-white disabled:opacity-50 disabled:cursor-not-allowed hover:border-pink-600 hover:bg-gray-900 transition-all duration-300 text-sm sm:text-base"
+                >
+                  <span className="hidden sm:inline">Next</span>
+                  <ChevronRight size={20} />
+                </button>
               </div>
-            ))}
-          </div>
+            )}
+          </>
         ) : (
           <div className="text-center py-16">
             <p className="text-gray-400 text-lg">
