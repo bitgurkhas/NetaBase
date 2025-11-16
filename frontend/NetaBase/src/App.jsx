@@ -9,6 +9,7 @@ import AboutPage from "./pages/About";
 import ScrollToTop from "./components/ScrollToTop";
 import Party from "./pages/Party";
 import News from "./pages/News";
+
 const App = () => {
   const [isDark, setIsDark] = useState(true);
 
