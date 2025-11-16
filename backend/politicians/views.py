@@ -10,13 +10,20 @@ from politicians.models import Party, Politician, Rating
 from politicians.serializers import PartySerializer, RatingSerializer
 from politicians.serializers import PoliticianSerializer, PoliticianDetailSerializer
 from django.db.models import F
-
+from django.views.decorators.cache import cache_page
+from django.utils.decorators import method_decorator
+from django.core.cache import cache
+from django.conf import settings 
 
 class StandardResultsSetPagination(PageNumberPagination):
     page_size = 10
     page_size_query_param = 'page_size'
     max_page_size = 100
 
+
+def clear_politician_cache(slug):
+    cache.delete(f"politician:{slug}")
+    
 # Party List View
 class PartyListView(generics.ListAPIView):
     queryset = Party.objects.all()
@@ -27,7 +34,7 @@ class PartyListView(generics.ListAPIView):
     
     search_fields = ['name', 'short_name']
     ordering_fields = ['name', 'created_at']
-    ordering = ['name']  # Default alphabetical ordering
+    ordering = ['name']
 
 
 # Party Detail View
@@ -37,6 +44,10 @@ class PartyDetailView(generics.RetrieveAPIView):
     permission_classes = [AllowAny]
     lookup_field = 'slug'
 
+    @method_decorator(cache_page(60 * 10))
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
+    
 
 # Politicians by Party View
 class PartyPoliticiansView(generics.ListAPIView):
@@ -72,6 +83,10 @@ class PoliticianListView(generics.ListAPIView):
     ordering = ['-views']  # Default ordering by most viewed
 
 
+    @method_decorator(cache_page(60 * 5))
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
+
 class PoliticianDetailView(generics.RetrieveAPIView):
     queryset = Politician.objects.all()
     serializer_class = PoliticianDetailSerializer
@@ -79,14 +94,23 @@ class PoliticianDetailView(generics.RetrieveAPIView):
     lookup_field = 'slug'
 
     def retrieve(self, request, *args, **kwargs):
-        instance = self.get_object()
+        slug = kwargs["slug"]
+        cache_key = f"politician:{slug}"
 
-        # Increment view count
-        Politician.objects.filter(pk=instance.pk).update(views=F('views') + 1)
-        instance.refresh_from_db()
-
-        serializer = self.get_serializer(instance)
-        return Response(serializer.data)
+        # Try to get from cache
+        cached_data = cache.get(cache_key)
+        
+        if not cached_data:
+            # Cache miss - fetch from DB
+            instance = self.get_object()
+            cached_data = self.get_serializer(instance).data
+            cache.set(cache_key, cached_data, settings.CACHE_TTL)
+        
+        # Increment views
+        Politician.objects.filter(slug=slug).update(views=F('views') + 1)
+        
+        return Response(cached_data)
+    
 
 class PoliticianRatingListCreateView(generics.ListCreateAPIView):
     serializer_class = RatingSerializer
@@ -123,12 +147,14 @@ class PoliticianRatingListCreateView(generics.ListCreateAPIView):
             serializer = self.get_serializer(existing, data=request.data, partial=False)
             serializer.is_valid(raise_exception=True)
             serializer.save()
+            clear_politician_cache(politician.slug)  # ← ADD THIS LINE
             return Response(serializer.data, status=status.HTTP_200_OK)
         
         # Create new rating
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save(user=request.user, politician=politician)
+        clear_politician_cache(politician.slug)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
@@ -149,8 +175,10 @@ class PoliticianRatingDetailView(generics.RetrieveUpdateDestroyAPIView):
         if rating.user != self.request.user:
             raise PermissionDenied("You can only modify your own rating.")
         serializer.save()
+        clear_politician_cache(rating.politician.slug)
 
     def perform_destroy(self, instance):
         if instance.user != self.request.user:
             raise PermissionDenied("You can only delete your own rating.")
+        clear_politician_cache(instance.politician.slug)
         instance.delete()

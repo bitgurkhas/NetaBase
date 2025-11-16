@@ -40,6 +40,29 @@ else:
 SWAGGER_USE_COMPAT_RENDERERS = False
 
 
+# Cache TTL
+CACHE_TTL = int(os.getenv("CACHE_TTL", 300))
+
+# Redis URL
+REDIS_URL = os.getenv("REDIS_URL", "redis://127.0.0.1:6379/1")
+
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": REDIS_URL,
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+            "CONNECTION_POOL_KWARGS": {
+                "max_connections": 20,  # Limit for free tier
+                "retry_on_timeout": True,
+            },
+            "SOCKET_CONNECT_TIMEOUT": 5,
+            "SOCKET_TIMEOUT": 5,
+        },
+        "KEY_PREFIX": "poltrack",
+    }
+}
+
 # Installed apps
 INSTALLED_APPS = [
     'django.contrib.admin',

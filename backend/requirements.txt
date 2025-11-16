@@ -8,6 +8,7 @@ django-cloudinary-storage==0.3.0
 django-cors-headers==4.9.0
 django-extensions==4.1
 django-filter==25.2
+django-redis==6.0.0
 django-rest-framework==0.1.0
 djangorestframework==3.16.1
 djangorestframework_simplejwt==5.5.1
@@ -28,6 +29,7 @@ pytest-django==4.11.1
 python-dotenv==1.2.1
 pytz==2025.2
 PyYAML==6.0.3
+redis==7.0.1
 requests==2.32.5
 six==1.17.0
 sqlparse==0.5.3
