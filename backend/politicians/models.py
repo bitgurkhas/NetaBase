@@ -42,12 +42,13 @@ class Party(models.Model):
 
 
 class Politician(models.Model):
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=250)
     slug = AutoSlugField(populate_from='name', unique=True, max_length=255)  # type: ignore
     views = models.PositiveIntegerField(default=0)
     photo = models.ImageField(
         upload_to='politicians/banners/',
         blank=True,
+        max_length=500,
         null=True,
         validators=[validate_image],
         help_text="Politician photo (max 5MB)"
@@ -124,7 +125,7 @@ class Initiatives(models.Model):
         on_delete=models.CASCADE,
         related_name="initiatives"
     )
-    title = models.CharField(max_length=255)
+    title = models.CharField(max_length=250)
     description = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
