@@ -4,3 +4,5 @@ db.sqlite3
 media/
 staticfiles/
 __pycache__
+data.json
+populate_from_json.py

@@ -36,14 +36,14 @@ export default function PoliticianDetail() {
       try {
         setLoading(true);
         
-        // Fetch politician details using slug
+        // Fetch politician details
         const politicianRes = await axios.get(`${baseUrl}/api/politicians/${slug}/`);
         setPolitician(politicianRes.data);
 
-        // Fetch ratings for this politician using slug
+        // Fetch ratings for this politician
         const ratingsRes = await axios.get(`${baseUrl}/api/politicians/${slug}/ratings/`);
         
-        // Handle paginated response if needed
+        // Handle paginated response
         const ratingsData = ratingsRes.data.results || ratingsRes.data;
         setRatings(ratingsData);
 

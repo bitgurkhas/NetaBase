@@ -9,6 +9,7 @@ from django.shortcuts import get_object_or_404
 from politicians.models import Party, Politician, Rating
 from politicians.serializers import PartySerializer, RatingSerializer
 from politicians.serializers import PoliticianSerializer, PoliticianDetailSerializer
+from django.db.models import F
 
 
 class StandardResultsSetPagination(PageNumberPagination):
@@ -77,6 +78,15 @@ class PoliticianDetailView(generics.RetrieveAPIView):
     permission_classes = [AllowAny]
     lookup_field = 'slug'
 
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+
+        # Increment view count
+        Politician.objects.filter(pk=instance.pk).update(views=F('views') + 1)
+        instance.refresh_from_db()
+
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
 
 class PoliticianRatingListCreateView(generics.ListCreateAPIView):
     serializer_class = RatingSerializer
