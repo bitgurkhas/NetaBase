@@ -36,6 +36,9 @@ else:
         }
     }
 
+SWAGGER_USE_COMPAT_RENDERERS = False
+
+
 # Installed apps
 INSTALLED_APPS = [
     'django.contrib.admin',
