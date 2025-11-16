@@ -70,6 +70,8 @@ const Header = ({ isDark, setIsDark }) => {
           <nav className="hidden lg:flex items-center gap-8 ml-12">
             <button onClick={() => navigate('/')} className="text-gray-300 hover:text-white transition text-sm bg-none border-none cursor-pointer">Home</button>
             <button onClick={() => navigate('/election')} className="text-gray-300 hover:text-white transition text-sm bg-none border-none cursor-pointer">Events</button>
+            <button onClick={() => navigate('/party')} className="text-gray-300 hover:text-white transition text-sm bg-none border-none cursor-pointer">Party</button>
+            <button onClick={() => navigate('/news')} className="text-gray-300 hover:text-white transition text-sm bg-none border-none cursor-pointer">News</button>
             <button onClick={() => navigate('/about')} className="text-gray-300 hover:text-white transition text-sm bg-none border-none cursor-pointer">About</button>
             <button onClick={handleChatClick} className="text-gray-300 hover:text-white transition text-sm bg-none border-none cursor-pointer flex items-center gap-2">
               <MessageCircle size={16} />
@@ -118,6 +120,8 @@ const Header = ({ isDark, setIsDark }) => {
             <nav className="flex flex-col gap-3 pt-4">
               <button onClick={() => navigate('/')} className="text-gray-300 hover:text-white transition px-2 py-2 text-left bg-none border-none cursor-pointer">Home</button>
               <button onClick={() => navigate('/election')} className="text-gray-300 hover:text-white transition px-2 py-2 text-left bg-none border-none cursor-pointer">Events</button>
+              <button onClick={() => navigate('/party')} className="text-gray-300 hover:text-white transition px-2 py-2 text-left bg-none border-none cursor-pointer">Party</button>
+              <button onClick={() => navigate('/news')} className="text-gray-300 hover:text-white transition px-2 py-2 text-left bg-none border-none cursor-pointer">News</button>
               <button onClick={() => navigate('/about')} className="text-gray-300 hover:text-white transition px-2 py-2 text-left bg-none border-none cursor-pointer">About</button>
               <button onClick={handleChatClick} className="text-gray-300 hover:text-white transition px-2 py-2 text-left bg-none border-none cursor-pointer flex items-center gap-2">
                 <MessageCircle size={16} />
