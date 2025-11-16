@@ -13,6 +13,8 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 DEBUG = os.getenv("DEBUG", "False").lower() == "true"
 ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "").split(",")
 
+ADMINS = [(os.getenv("ADMIN_NAME"), os.getenv("ADMIN_EMAIL"))]
+
 # Database Config
 DATABASE_URL = os.getenv("DATABASE_URL")
 
