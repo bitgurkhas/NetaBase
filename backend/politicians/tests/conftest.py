@@ -1,3 +1,4 @@
+from django.test import override_settings
 import pytest
 from rest_framework.test import APIClient
 from django.contrib.auth.models import User
@@ -5,12 +6,29 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 from politicians.models import Party, Politician, Rating
 
+from django.core.cache import cache
+from rest_framework.test import APITestCase
+
 
 @pytest.fixture
 def api_client():
     return APIClient()
 
 
+
+@pytest.fixture(autouse=True)
+def disable_redis_cache():
+    # Automatically disable Redis cache for all tests.
+    with override_settings(
+        CACHES={
+            "default": {
+                "BACKEND": "django.core.cache.backends.dummy.DummyCache",
+            }
+        }
+    ):
+        yield
+        
+        
 @pytest.fixture
 def user_factory(db):
     def make_user(**kwargs):
