@@ -1,16 +1,18 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LogIn, LogOut, MessageCircle } from 'lucide-react';
+import { LogIn, LogOut, MessageCircle, Globe, ChevronDown } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 import icon from "../assets/NetaBase.png";
 
 const Header = ({ isDark, setIsDark }) => {
   const navigate = useNavigate();
+  const { t, language, switchLanguage } = useLanguage();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [showLanguageMenu, setShowLanguageMenu] = useState(false);
 
   // Load OmniWidget script
   useEffect(() => {
-    // Prevent duplicate load
     if (document.getElementById("omnidimension-web-widget")) return;
     
     const script = document.createElement("script");
@@ -49,11 +51,15 @@ const Header = ({ isDark, setIsDark }) => {
   };
 
   const handleChatClick = () => {
-    //  OmniWidget chat
     const chatButton = document.getElementById('omni-open-widget-btn');
     if (chatButton) {
       chatButton.click();
     }
+  };
+
+  const handleLanguageChange = (lang) => {
+    switchLanguage(lang);
+    setShowLanguageMenu(false);
   };
 
   return (
@@ -68,19 +74,50 @@ const Header = ({ isDark, setIsDark }) => {
 
           {/* Desktop Navigation */}
           <nav className="hidden lg:flex items-center gap-8 ml-12">
-            <button onClick={() => navigate('/')} className="text-gray-300 hover:text-white transition text-sm bg-none border-none cursor-pointer">Home</button>
-            <button onClick={() => navigate('/election')} className="text-gray-300 hover:text-white transition text-sm bg-none border-none cursor-pointer">Events</button>
-            <button onClick={() => navigate('/party')} className="text-gray-300 hover:text-white transition text-sm bg-none border-none cursor-pointer">Party</button>
-            <button onClick={() => navigate('/news')} className="text-gray-300 hover:text-white transition text-sm bg-none border-none cursor-pointer">News</button>
-            <button onClick={() => navigate('/about')} className="text-gray-300 hover:text-white transition text-sm bg-none border-none cursor-pointer">About</button>
+            <button onClick={() => navigate('/')} className="text-gray-300 hover:text-white transition text-sm bg-none border-none cursor-pointer">{t('header.home')}</button>
+            <button onClick={() => navigate('/election')} className="text-gray-300 hover:text-white transition text-sm bg-none border-none cursor-pointer">{t('header.events')}</button>
+            <button onClick={() => navigate('/party')} className="text-gray-300 hover:text-white transition text-sm bg-none border-none cursor-pointer">{t('header.party')}</button>
+            <button onClick={() => navigate('/news')} className="text-gray-300 hover:text-white transition text-sm bg-none border-none cursor-pointer">{t('header.news')}</button>
+            <button onClick={() => navigate('/about')} className="text-gray-300 hover:text-white transition text-sm bg-none border-none cursor-pointer">{t('header.about')}</button>
             <button onClick={handleChatClick} className="text-gray-300 hover:text-white transition text-sm bg-none border-none cursor-pointer flex items-center gap-2">
               <MessageCircle size={16} />
-              <span>Chat</span>
+              <span>{t('header.chat')}</span>
             </button>
           </nav>
 
           {/* Right Actions */}
-          <div className="flex items-center gap-2 sm:gap-4 cursor-pointer">
+          <div className="flex items-center gap-2 sm:gap-3 cursor-pointer">
+            {/* Language Selector */}
+            <div className="relative hidden sm:block">
+              <button
+                onClick={() => setShowLanguageMenu(!showLanguageMenu)}
+                className="flex items-center gap-2 px-3 py-2 hover:bg-gray-900 rounded-lg transition text-sm text-gray-300 hover:text-white"
+              >
+                <Globe size={16} />
+                <span>{language === 'en' ? '🇬🇧' : '🇳🇵'} {language.toUpperCase()}</span>
+                <ChevronDown size={14} className={`transition-transform ${showLanguageMenu ? 'rotate-180' : ''}`} />
+              </button>
+              
+              {showLanguageMenu && (
+                <div className="absolute right-0 mt-2 w-40 bg-gray-900 border border-gray-700 rounded-lg shadow-xl py-2 z-50">
+                  <button
+                    onClick={() => handleLanguageChange('en')}
+                    className={`w-full text-left px-4 py-2 flex items-center gap-2 hover:bg-gray-800 transition ${language === 'en' ? 'text-pink-400 bg-gray-800' : 'text-gray-300'}`}
+                  >
+                    <span className="text-lg">🇬🇧</span>
+                    <span>English</span>
+                  </button>
+                  <button
+                    onClick={() => handleLanguageChange('ne')}
+                    className={`w-full text-left px-4 py-2 flex items-center gap-2 hover:bg-gray-800 transition ${language === 'ne' ? 'text-pink-400 bg-gray-800' : 'text-gray-300'}`}
+                  >
+                    <span className="text-lg">🇳🇵</span>
+                    <span>नेपाली</span>
+                  </button>
+                </div>
+              )}
+            </div>
+
             {/* Login / Logout button */}
             {!isLoggedIn ? (
               <button
@@ -88,7 +125,7 @@ const Header = ({ isDark, setIsDark }) => {
                 className="hidden sm:flex items-center gap-2 px-3 py-2 hover:bg-gray-900 rounded-lg transition text-sm"
               >
                 <LogIn size={16} />
-                <span>Login</span>
+                <span>{t('header.login')}</span>
               </button>
             ) : (
               <button
@@ -96,7 +133,7 @@ const Header = ({ isDark, setIsDark }) => {
                 className="hidden sm:flex items-center gap-2 px-3 py-2 hover:bg-gray-900 rounded-lg transition text-sm text-red-400 hover:text-red-300"
               >
                 <LogOut size={16} />
-                <span>Logout</span>
+                <span>{t('header.logout')}</span>
               </button>
             )}
 
@@ -118,15 +155,34 @@ const Header = ({ isDark, setIsDark }) => {
         {isMobileMenuOpen && (
           <div className="lg:hidden pb-4 border-t border-gray-900">
             <nav className="flex flex-col gap-3 pt-4">
-              <button onClick={() => navigate('/')} className="text-gray-300 hover:text-white transition px-2 py-2 text-left bg-none border-none cursor-pointer">Home</button>
-              <button onClick={() => navigate('/election')} className="text-gray-300 hover:text-white transition px-2 py-2 text-left bg-none border-none cursor-pointer">Events</button>
-              <button onClick={() => navigate('/party')} className="text-gray-300 hover:text-white transition px-2 py-2 text-left bg-none border-none cursor-pointer">Party</button>
-              <button onClick={() => navigate('/news')} className="text-gray-300 hover:text-white transition px-2 py-2 text-left bg-none border-none cursor-pointer">News</button>
-              <button onClick={() => navigate('/about')} className="text-gray-300 hover:text-white transition px-2 py-2 text-left bg-none border-none cursor-pointer">About</button>
+              <button onClick={() => navigate('/')} className="text-gray-300 hover:text-white transition px-2 py-2 text-left bg-none border-none cursor-pointer">{t('header.home')}</button>
+              <button onClick={() => navigate('/election')} className="text-gray-300 hover:text-white transition px-2 py-2 text-left bg-none border-none cursor-pointer">{t('header.events')}</button>
+              <button onClick={() => navigate('/party')} className="text-gray-300 hover:text-white transition px-2 py-2 text-left bg-none border-none cursor-pointer">{t('header.party')}</button>
+              <button onClick={() => navigate('/news')} className="text-gray-300 hover:text-white transition px-2 py-2 text-left bg-none border-none cursor-pointer">{t('header.news')}</button>
+              <button onClick={() => navigate('/about')} className="text-gray-300 hover:text-white transition px-2 py-2 text-left bg-none border-none cursor-pointer">{t('header.about')}</button>
               <button onClick={handleChatClick} className="text-gray-300 hover:text-white transition px-2 py-2 text-left bg-none border-none cursor-pointer flex items-center gap-2">
                 <MessageCircle size={16} />
-                <span>Chat</span>
+                <span>{t('header.chat')}</span>
               </button>
+
+              {/* Mobile Language Selector */}
+              <div className="border-t border-gray-700 pt-3 mt-3">
+                <p className="text-gray-400 text-xs px-2 mb-2">Language</p>
+                <button
+                  onClick={() => handleLanguageChange('en')}
+                  className={`w-full text-left px-2 py-2 flex items-center gap-2 transition ${language === 'en' ? 'text-pink-400' : 'text-gray-300'}`}
+                >
+                  <span className="text-lg">🇬🇧</span>
+                  <span>English</span>
+                </button>
+                <button
+                  onClick={() => handleLanguageChange('ne')}
+                  className={`w-full text-left px-2 py-2 flex items-center gap-2 transition ${language === 'ne' ? 'text-pink-400' : 'text-gray-300'}`}
+                >
+                  <span className="text-lg">🇳🇵</span>
+                  <span>नेपाली</span>
+                </button>
+              </div>
 
               {/* Mobile Logout/Login */}
               {!isLoggedIn ? (
@@ -135,7 +191,7 @@ const Header = ({ isDark, setIsDark }) => {
                   className="text-left text-gray-300 hover:text-white transition px-2 py-2 flex items-center gap-2 bg-none border-none cursor-pointer"
                 >
                   <LogIn size={16} />
-                  <span>Login</span>
+                  <span>{t('header.login')}</span>
                 </button>
               ) : (
                 <button
@@ -143,7 +199,7 @@ const Header = ({ isDark, setIsDark }) => {
                   className="text-left text-red-400 hover:text-red-300 transition px-2 py-2 flex items-center gap-2 bg-none border-none cursor-pointer"
                 >
                   <LogOut size={16} />
-                  <span>Logout</span>
+                  <span>{t('header.logout')}</span>
                 </button>
               )}
             </nav>
