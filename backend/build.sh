@@ -1,11 +1,12 @@
 #!/bin/bash
 
-echo "Installing dependencies"
-pip install -r requirements.txt
+set -e  # exit on error
 
-echo "Migrating"
+echo "Running migrations..."
 python manage.py migrate
 
-echo "Collectingf statics"
+echo "Collecting static files..."
 python manage.py collectstatic --no-input
+
+echo "Starting Gunicorn..."
 exec "$@"
