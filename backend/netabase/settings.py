@@ -99,7 +99,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'politician_recorder.urls'
+ROOT_URLCONF = 'netabase.urls'
 
 TEMPLATES = [
     {
@@ -116,7 +116,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'politician_recorder.wsgi.application'
+WSGI_APPLICATION = 'netabase.wsgi.application'
 
 # Password validators
 AUTH_PASSWORD_VALIDATORS = [
