@@ -1,3 +1,4 @@
+import os
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.core.exceptions import ValidationError
@@ -9,14 +10,29 @@ User = get_user_model()
 
 def validate_image(image):
     """Validate image file type and size"""
-    valid_extensions = ['.jpg', '.jpeg', '.png']
-    max_size = 5 * 1024 * 1024  # 5MB
+    # Skip validation if image hasn't changed
+    if not image:
+        return
     
-    if not any(image.name.lower().endswith(ext) for ext in valid_extensions):
-        raise ValidationError("Only .jpg, .jpeg, and .png images are allowed.")
-    
-    if image.size > max_size:
-        raise ValidationError("Image size cannot exceed 5MB.")
+    # Check if this is a new file being uploaded
+    if hasattr(image, 'file'):
+        valid_extensions = ['.jpg', '.jpeg', '.png']
+        max_size = 5 * 1024 * 1024  # 5MB
+        
+        # Get the original filename if available
+        filename = getattr(image, 'name', '')
+        
+        # Extract extension
+        _, ext = os.path.splitext(filename.lower())
+
+        if filename and ext:
+            if ext not in valid_extensions:
+                raise ValidationError("Only .jpg, .jpeg, and .png images are allowed.")
+        
+        # Validate size for new uploads
+        if hasattr(image, 'size') and image.size:
+            if image.size > max_size:
+                raise ValidationError("Image size cannot exceed 5MB.")
 
 
 class Party(models.Model):
