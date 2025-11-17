@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { ArrowLeft, Zap, Target } from "lucide-react";
-import { motion as Motion } from "framer-motion";
+
 
 import LoadingState from "../components/LoadingState";
 import ErrorState from "../components/ErrorState";
@@ -113,7 +113,7 @@ export default function PoliticianDetail() {
 
   return (
     <div className="min-h-screen bg-linear-to-br from-[#0a0b10] via-[#0f1118] to-[#0a0b10] text-gray-100 p-6 pb-20">
-      <Motion.button
+      <motion.button
         initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0 }}
         onClick={() => navigate(-1)}
@@ -124,7 +124,7 @@ export default function PoliticianDetail() {
           className="group-hover:-translate-x-1 transition-transform"
         />
         <span className="font-medium">Back</span>
-      </Motion.button>
+      </motion.button>
 
       <div className="max-w-5xl mx-auto space-y-8">
         <PoliticianInfo politician={politician} />
