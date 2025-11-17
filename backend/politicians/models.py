@@ -16,7 +16,7 @@ def validate_image(image):
     
     # Check if this is a new file being uploaded
     if hasattr(image, 'file'):
-        valid_extensions = ['.jpg', '.jpeg', '.png']
+        valid_extensions = ['.jpg', '.jpeg', '.png', '.svg']
         max_size = 5 * 1024 * 1024  # 5MB
         
         # Get the original filename if available
@@ -71,7 +71,7 @@ class Politician(models.Model):
     )
     age = models.PositiveIntegerField(
         validators=[MinValueValidator(18), MaxValueValidator(100)],
-        help_text="Must be at least 18 years old"
+        help_text="Must be at least 18 years old", blank=True, null=True
     )
     education = models.TextField(help_text="Educational background")
     criminal_record = models.TextField(
