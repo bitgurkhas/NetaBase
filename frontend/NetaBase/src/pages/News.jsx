@@ -76,31 +76,19 @@ export default function PoliticsNewsWidget() {
 
   return (
     <div className="news-widget-container">
-      {/* Header */}
-      <div className="news-widget-header">
-        <div className="header-content">
-          <div className="header-icon">📰</div>
-          <div className="header-text">
-            <h1>Nepali <span>Politics</span></h1>
-            <p>Explore the latest political news and updates from Nepal</p>
-          </div>
-        </div>
-        <div className="article-count">{news.length} Articles</div>
-      </div>
-
       {/* Filter Section */}
       <div className="filter-section">
         <button
           className={`filter-btn ${filter === "all" ? "active" : ""}`}
           onClick={() => setFilter("all")}
         >
-          All News
+          All News ({news.length})
         </button>
         <button
           className={`filter-btn ${filter === "with-image" ? "active" : ""}`}
           onClick={() => setFilter("with-image")}
         >
-          With Images
+          With Images ({news.filter(item => item.image || item.image_url).length})
         </button>
       </div>
 
@@ -121,19 +109,25 @@ export default function PoliticsNewsWidget() {
               rel="noopener noreferrer"
               className="news-card"
             >
-              {/* Image Section */}
-              {(item.image || item.image_url) && (
-                <div className="news-card-image">
-                  <img
-                    src={item.image || item.image_url}
-                    alt={item.title}
-                    onError={(e) => {
-                      e.target.style.display = "none";
-                    }}
-                  />
-                  <div className="image-overlay"></div>
-                </div>
-              )}
+              {/* Image Section - Always Show */}
+              <div className="news-card-image">
+                {(item.image || item.image_url) ? (
+                  <>
+                    <img
+                      src={item.image || item.image_url}
+                      alt={item.title}
+                      onError={(e) => {
+                        e.target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300'%3E%3Crect fill='%231a1a1a' width='400' height='300'/%3E%3Ctext x='50%25' y='50%25' font-size='48' fill='%234b5563' text-anchor='middle' dy='.3em'%3E📰%3C/text%3E%3C/svg%3E";
+                      }}
+                    />
+                    <div className="image-overlay"></div>
+                  </>
+                ) : (
+                  <div className="no-image-placeholder">
+                    <span>📰</span>
+                  </div>
+                )}
+              </div>
 
               {/* Card Content */}
               <div className="news-card-content">
@@ -149,7 +143,7 @@ export default function PoliticsNewsWidget() {
 
                 {/* Description */}
                 <p className="news-description">
-                  {truncateText(stripHtml(item.description), 150)}
+                  {truncateText(stripHtml(item.description), 120)}
                 </p>
 
                 {/* Meta Information */}
