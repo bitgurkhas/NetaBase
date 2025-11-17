@@ -6,8 +6,6 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 from politicians.models import Party, Politician, Rating
 
-from django.core.cache import cache
-from rest_framework.test import APITestCase
 
 
 @pytest.fixture
