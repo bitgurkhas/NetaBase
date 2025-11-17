@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { ArrowLeft, Zap, Target } from "lucide-react";
-
+import { motion } from "framer-motion";
 
 import LoadingState from "../components/LoadingState";
 import ErrorState from "../components/ErrorState";
