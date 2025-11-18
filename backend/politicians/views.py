@@ -114,7 +114,6 @@ class PoliticianDetailView(generics.RetrieveAPIView):
 
 class PoliticianRatingListCreateView(generics.ListCreateAPIView):
     serializer_class = RatingSerializer
-    authentication_classes = [JWTAuthentication]
     pagination_class = StandardResultsSetPagination
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
     
@@ -160,7 +159,6 @@ class PoliticianRatingListCreateView(generics.ListCreateAPIView):
 
 class PoliticianRatingDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = RatingSerializer
-    authentication_classes = [JWTAuthentication]
 
     def get_permissions(self):
         if self.request.method == 'GET':
