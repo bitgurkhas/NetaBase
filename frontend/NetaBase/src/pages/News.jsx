@@ -12,7 +12,7 @@ export default function PoliticsNewsWidget() {
     const fetchNews = async () => {
       try {
         const response = await axios.get(
-          `${import.meta.env.VITE_BASE_URL}/api/news/ratopati-politics/`
+          `${import.meta.env.VITE_BASE_URL || ""}/api/news/ratopati-politics/`
         );
         
         if (response.data.status === "success") {
