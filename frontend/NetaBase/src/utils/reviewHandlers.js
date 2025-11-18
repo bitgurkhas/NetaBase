@@ -1,26 +1,26 @@
-import axios from "axios";
 import Swal from "sweetalert2";
+import api from "../services/api";
 
 export async function handleReviewSubmit(
   e,
-  { token, baseUrl, slug, userId, score, comment, userReview },
+  { slug, userId, score, comment, userReview },
   { setSubmitting, setRatings, setUserReview, setIsEditingMode }
 ) {
   e.preventDefault();
 
-  if (!token) {
+  // Check if user is logged in
+  if (!userId) {
     Swal.fire({
       icon: "warning",
-      title: "Authentication Required",
-      text: "You must be logged in to post a review",
-      confirmButtonColor: "#2563eb",
+      title: "Login Required",
+      text: "Please login to submit a review",
+      confirmButtonColor: "#3b82f6",
     });
     return;
   }
 
   try {
     setSubmitting(true);
-    const headers = { Authorization: `Bearer ${token}` };
     const payload = {
       score: parseInt(score),
       comment: comment || null,
@@ -28,9 +28,7 @@ export async function handleReviewSubmit(
 
     if (userReview) {
       // Update existing review
-      await axios.put(`${baseUrl}/api/ratings/${userReview.id}/`, payload, {
-        headers,
-      });
+      await api.put(`/api/ratings/${userReview.id}/`, payload);
       Swal.fire({
         icon: "success",
         title: "Updated!",
@@ -39,9 +37,7 @@ export async function handleReviewSubmit(
       });
     } else {
       // Create new review
-      await axios.post(`${baseUrl}/api/politicians/${slug}/ratings/`, payload, {
-        headers,
-      });
+      await api.post(`/api/politicians/${slug}/ratings/`, payload);
       Swal.fire({
         icon: "success",
         title: "Submitted!",
@@ -51,12 +47,10 @@ export async function handleReviewSubmit(
     }
 
     // Refresh ratings list
-    const { data } = await axios.get(
-      `${baseUrl}/api/politicians/${slug}/ratings/`
-    );
+    const { data } = await api.get(`/api/politicians/${slug}/ratings/`);
     const ratingsData = data.results || data;
     setRatings(ratingsData);
-    
+
     const updatedReview = ratingsData.find(
       (r) => String(r.user_id) === String(userId)
     );
@@ -64,9 +58,29 @@ export async function handleReviewSubmit(
     setIsEditingMode(false);
   } catch (err) {
     console.error("Error submitting review:", err);
-    const errorMessage = err.response?.data?.message || 
-                        err.response?.data?.detail || 
-                        "Failed to submit review. Please try again.";
+
+    // Handle specific error cases
+    let errorMessage = "Failed to submit review. Please try again.";
+
+    if (err.response?.status === 401) {
+      errorMessage = "Please login to submit a review";
+    } else if (err.response?.status === 403) {
+      errorMessage = "You don't have permission to perform this action";
+    } else if (err.response?.data?.message) {
+      errorMessage = err.response.data.message;
+    } else if (err.response?.data?.detail) {
+      errorMessage = err.response.data.detail;
+    } else if (err.response?.data) {
+      // Handle validation errors
+      const errors = Object.entries(err.response.data)
+        .map(
+          ([key, value]) =>
+            `${key}: ${Array.isArray(value) ? value.join(", ") : value}`
+        )
+        .join("\n");
+      errorMessage = errors || errorMessage;
+    }
+
     Swal.fire({
       icon: "error",
       title: "Error",
@@ -79,7 +93,7 @@ export async function handleReviewSubmit(
 }
 
 export async function handleReviewDelete(
-  { token, baseUrl, slug, userReview },
+  { slug, userReview },
   { setRatings, setUserReview, setScore, setComment, setIsEditingMode }
 ) {
   if (!userReview) return;
@@ -97,8 +111,7 @@ export async function handleReviewDelete(
 
   if (result.isConfirmed) {
     try {
-      const headers = { Authorization: `Bearer ${token}` };
-      await axios.delete(`${baseUrl}/api/ratings/${userReview.id}/`, { headers });
+      await api.delete(`/api/ratings/${userReview.id}/`);
 
       Swal.fire({
         icon: "success",
@@ -108,9 +121,7 @@ export async function handleReviewDelete(
       });
 
       // Refresh ratings list
-      const { data } = await axios.get(
-        `${baseUrl}/api/politicians/${slug}/ratings/`
-      );
+      const { data } = await api.get(`/api/politicians/${slug}/ratings/`);
       const ratingsData = data.results || data;
       setRatings(ratingsData);
       setUserReview(null);
@@ -119,9 +130,21 @@ export async function handleReviewDelete(
       setIsEditingMode(false);
     } catch (err) {
       console.error("Error deleting review:", err);
-      const errorMessage = err.response?.data?.message || 
-                          err.response?.data?.detail || 
-                          "Failed to delete review. Please try again.";
+
+      let errorMessage = "Failed to delete review. Please try again.";
+
+      if (err.response?.status === 401) {
+        errorMessage = "Please login to delete your review";
+      } else if (err.response?.status === 403) {
+        errorMessage = "You don't have permission to delete this review";
+      } else if (err.response?.status === 404) {
+        errorMessage = "Review not found";
+      } else if (err.response?.data?.message) {
+        errorMessage = err.response.data.message;
+      } else if (err.response?.data?.detail) {
+        errorMessage = err.response.data.detail;
+      }
+
       Swal.fire({
         icon: "error",
         title: "Error",

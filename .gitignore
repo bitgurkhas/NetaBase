@@ -1,4 +1,4 @@
-venv\
+venv/
 .env
 db.sqlite3
 media/
@@ -7,3 +7,4 @@ __pycache__
 data.json
 populate_from_json.py
 .pytest_cache
+filled_data.json

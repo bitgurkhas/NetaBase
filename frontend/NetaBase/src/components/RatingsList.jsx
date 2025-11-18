@@ -3,7 +3,6 @@ import { motion } from "framer-motion";
 
 export default function RatingsList({
   ratings,
-  token,
   userId,
   isEditingMode,
   onEdit,
@@ -27,7 +26,7 @@ export default function RatingsList({
               animate={{ opacity: 1, x: 0 }}
               className="backdrop-blur-md bg-white/5 border border-white/10 rounded-2xl p-5 flex justify-between items-start"
             >
-              <div>
+              <div className="flex-1">
                 <p className="font-medium text-gray-300">{rating.username}</p>
                 <div className="flex items-center gap-1 mt-1">
                   {[...Array(5)].map((_, i) => (
@@ -51,12 +50,13 @@ export default function RatingsList({
                   </p>
                 )}
               </div>
-              {token &&
+              {/* Only show edit button if: user is logged in, this is their review, and not already editing */}
+              {userId &&
                 String(rating.user_id) === String(userId) &&
                 !isEditingMode && (
                   <button
                     onClick={onEdit}
-                    className="text-blue-400 hover:text-blue-300 flex items-center gap-1 text-sm"
+                    className="text-blue-400 hover:text-blue-300 flex items-center gap-1 text-sm transition-colors ml-4 shrink-0"
                   >
                     <Edit size={16} /> Edit
                   </button>

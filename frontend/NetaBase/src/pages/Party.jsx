@@ -10,7 +10,7 @@ export default function PoliticalPartiesSection() {
   const [loadingPoliticians, setLoadingPoliticians] = useState(false);
   const [error, setError] = useState(null);
 
-  const baseUrl = import.meta.env.VITE_BASE_URL;
+  const baseUrl = import.meta.env.VITE_BASE_URL || "";
 
   useEffect(() => {
     fetchParties();

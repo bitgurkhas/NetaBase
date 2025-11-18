@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Home from "../src/pages/Home";
-import Auth from "./pages/Auth";
 import Header from "./components/Header";
 import PoliticianDetail from "./pages/PoliticianDetail";
 import UpcommingElection from "./pages/UpcommingElection";
@@ -9,24 +8,26 @@ import AboutPage from "./pages/About";
 import ScrollToTop from "./components/ScrollToTop";
 import Party from "./pages/Party";
 import News from "./pages/News";
+import AuthInitializer from "./components/AuthInitializer";
 
 const App = () => {
   const [isDark, setIsDark] = useState(true);
 
   return (
     <BrowserRouter>
-      <ScrollToTop />
-      <Header isDark={isDark} setIsDark={setIsDark} />
-      <Routes>
-        <Route path="/auth" element={<Auth />} />
-        <Route path="/home" element={<Home />} />
-        <Route path="/party" element={<Party />} />
-        <Route path="/politician/:slug" element={<PoliticianDetail />} />
-        <Route path="/about" element={<AboutPage />} />
-        <Route path="/election" element={<UpcommingElection />} />
-        <Route path="/news" element={<News />} />
-        <Route path="*" element={<Navigate to="/home" />} />
-      </Routes>
+      <AuthInitializer>
+        <ScrollToTop />
+        <Header isDark={isDark} setIsDark={setIsDark} />
+        <Routes>
+          <Route path="/home" element={<Home />} />
+          <Route path="/party" element={<Party />} />
+          <Route path="/politician/:slug" element={<PoliticianDetail />} />
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="/election" element={<UpcommingElection />} />
+          <Route path="/news" element={<News />} />
+          <Route path="*" element={<Navigate to="/home" />} />
+        </Routes>
+      </AuthInitializer>
     </BrowserRouter>
   );
 };
