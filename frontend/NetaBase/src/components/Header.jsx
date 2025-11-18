@@ -1,146 +1,172 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { LogIn, LogOut, MessageCircle, Globe, ChevronDown } from 'lucide-react';
-import { useLanguage } from '../context/LanguageContext';
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { LogOut, Globe, ChevronDown } from "lucide-react";
+import { GoogleLogin } from "@react-oauth/google";
+import { useLanguage } from "../context/LanguageContext";
 import icon from "../assets/NetaBase.png";
+import api from "../services/api";
+import { useAuthStore } from "../services/useAuthStore";
 
-const Header = ({ isDark, setIsDark }) => {
+const Header = () => {
   const navigate = useNavigate();
   const { t, language, switchLanguage } = useLanguage();
+
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [showLanguageMenu, setShowLanguageMenu] = useState(false);
 
-  // Load OmniWidget script
-  useEffect(() => {
-    if (document.getElementById("omnidimension-web-widget")) return;
-    
-    const script = document.createElement("script");
-    script.id = "omnidimension-web-widget";
-    script.async = true;
-    script.src =
-      "https://backend.omnidim.io/web_widget.js?secret_key=473444d319254e96656cfe4207b5f65d";
-    
-    document.body.appendChild(script);
-    
-    return () => {
-      const existing = document.getElementById("omnidimension-web-widget");
-      if (existing) existing.remove();
-    };
-  }, []);
+  // Get auth state from store
+  const user = useAuthStore((state) => state.user);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const isInitialized = useAuthStore((state) => state.isInitialized);
+  const login = useAuthStore((state) => state.login);
+  const logout = useAuthStore((state) => state.logout);
 
-  // check login state
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    const refresh = localStorage.getItem('refresh_token');
-    const userId = localStorage.getItem('user_id');
-
-    if (token && refresh && userId) {
-      setIsLoggedIn(true);
-    } else {
-      setIsLoggedIn(false);
+  // Google Login Handler
+  const handleGoogleLogin = async ({ credential }) => {
+    if (!credential) {
+      alert("No credential received from Google");
+      return;
     }
-  }, []);
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('refresh_token');
-    localStorage.removeItem('user_id');
-    setIsLoggedIn(false);
-    navigate('/auth');
-  };
-
-  const handleChatClick = () => {
-    const chatButton = document.getElementById('omni-open-widget-btn');
-    if (chatButton) {
-      chatButton.click();
+    try {
+      const res = await api.post("/api/google/login/", { credential });
+      const { access, user } = res.data;
+      
+      login(access, user);
+      navigate("/home");
+    } catch (err) {
+      console.error("Google login error:", err);
+      alert(err.response?.data?.error || "Google login failed");
     }
   };
 
+  // Logout Handler
+  const handleLogout = async () => {
+    await logout();
+    navigate("/");
+  };
+
+  // Language change
   const handleLanguageChange = (lang) => {
     switchLanguage(lang);
     setShowLanguageMenu(false);
   };
 
+  const navigationItems = [
+    { path: "/home", label: t("header.home") },
+    { path: "/election", label: t("header.events") },
+    { path: "/party", label: t("header.party") },
+    { path: "/news", label: t("header.news") },
+    { path: "/about", label: t("header.about") },
+  ];
+
+  const languageOptions = [
+    { code: "en", flag: "🇬🇧", label: "English" },
+    { code: "ne", flag: "🇳🇵", label: "नेपाली" },
+  ];
+
   return (
     <header className="bg-black text-white sticky top-0 z-50 border-b border-gray-900">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Main header */}
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <div className="flex items-center gap-3 shrink-0 cursor-pointer" onClick={() => navigate('/home')}>
-            <img src={icon} className="w-10 h-10 rounded-lg flex items-center justify-center font-bold text-xs text-white shadow-lg" alt="NetaBase" />
-            <span className="text-lg sm:text-xl font-bold hidden sm:inline cursor-pointer">NetaBase</span>
+          <div
+            className="flex items-center gap-3 shrink-0 cursor-pointer"
+            onClick={() => navigate("/home")}
+          >
+            <img src={icon} className="w-10 h-10 rounded-lg" alt="NetaBase" />
+            <span className="text-lg sm:text-xl font-bold hidden sm:inline">
+              NetaBase
+            </span>
           </div>
 
-          {/* Desktop Navigation */}
+          {/* Desktop nav */}
           <nav className="hidden lg:flex items-center gap-8 ml-12">
-            <button onClick={() => navigate('/')} className="text-gray-300 hover:text-white transition text-sm bg-none border-none cursor-pointer">{t('header.home')}</button>
-            <button onClick={() => navigate('/election')} className="text-gray-300 hover:text-white transition text-sm bg-none border-none cursor-pointer">{t('header.events')}</button>
-            <button onClick={() => navigate('/party')} className="text-gray-300 hover:text-white transition text-sm bg-none border-none cursor-pointer">{t('header.party')}</button>
-            <button onClick={() => navigate('/news')} className="text-gray-300 hover:text-white transition text-sm bg-none border-none cursor-pointer">{t('header.news')}</button>
-            <button onClick={() => navigate('/about')} className="text-gray-300 hover:text-white transition text-sm bg-none border-none cursor-pointer">{t('header.about')}</button>
-            <button onClick={handleChatClick} className="text-gray-300 hover:text-white transition text-sm bg-none border-none cursor-pointer flex items-center gap-2">
-              <MessageCircle size={16} />
-              <span>{t('header.chat')}</span>
-            </button>
+            {navigationItems.map(({ path, label }) => (
+              <button
+                key={path}
+                onClick={() => navigate(path)}
+                className="text-gray-300 hover:text-white transition text-sm"
+              >
+                {label}
+              </button>
+            ))}
           </nav>
 
-          {/* Right Actions */}
-          <div className="flex items-center gap-2 sm:gap-3 cursor-pointer">
+          {/* Right actions */}
+          <div className="flex items-center gap-2 sm:gap-3">
             {/* Language Selector */}
             <div className="relative hidden sm:block">
               <button
-                onClick={() => setShowLanguageMenu(!showLanguageMenu)}
+                onClick={() => setShowLanguageMenu((v) => !v)}
                 className="flex items-center gap-2 px-3 py-2 hover:bg-gray-900 rounded-lg transition text-sm text-gray-300 hover:text-white"
               >
                 <Globe size={16} />
-                <span>{language === 'en' ? '🇬🇧' : '🇳🇵'} {language.toUpperCase()}</span>
-                <ChevronDown size={14} className={`transition-transform ${showLanguageMenu ? 'rotate-180' : ''}`} />
+                <span>
+                  {language === "en" ? "🇬🇧" : "🇳🇵"} {language.toUpperCase()}
+                </span>
+                <ChevronDown
+                  size={14}
+                  className={`transition-transform ${
+                    showLanguageMenu ? "rotate-180" : ""
+                  }`}
+                />
               </button>
-              
               {showLanguageMenu && (
                 <div className="absolute right-0 mt-2 w-40 bg-gray-900 border border-gray-700 rounded-lg shadow-xl py-2 z-50">
-                  <button
-                    onClick={() => handleLanguageChange('en')}
-                    className={`w-full text-left px-4 py-2 flex items-center gap-2 hover:bg-gray-800 transition ${language === 'en' ? 'text-pink-400 bg-gray-800' : 'text-gray-300'}`}
-                  >
-                    <span className="text-lg">🇬🇧</span>
-                    <span>English</span>
-                  </button>
-                  <button
-                    onClick={() => handleLanguageChange('ne')}
-                    className={`w-full text-left px-4 py-2 flex items-center gap-2 hover:bg-gray-800 transition ${language === 'ne' ? 'text-pink-400 bg-gray-800' : 'text-gray-300'}`}
-                  >
-                    <span className="text-lg">🇳🇵</span>
-                    <span>नेपाली</span>
-                  </button>
+                  {languageOptions.map(({ code, flag, label }) => (
+                    <button
+                      key={code}
+                      onClick={() => handleLanguageChange(code)}
+                      className={`w-full text-left px-4 py-2 flex items-center gap-2 hover:bg-gray-800 transition ${
+                        language === code
+                          ? "text-pink-400 bg-gray-800"
+                          : "text-gray-300"
+                      }`}
+                    >
+                      <span className="text-lg">{flag}</span>
+                      <span>{label}</span>
+                    </button>
+                  ))}
                 </div>
               )}
             </div>
 
-            {/* Login / Logout button */}
-            {!isLoggedIn ? (
-              <button
-                onClick={() => navigate('/auth')}
-                className="hidden sm:flex items-center gap-2 px-3 py-2 hover:bg-gray-900 rounded-lg transition text-sm"
-              >
-                <LogIn size={16} />
-                <span>{t('header.login')}</span>
-              </button>
+            {/* Auth Section */}
+            {!isInitialized ? (
+              <div className="hidden sm:flex items-center gap-2 text-sm text-gray-400">
+                <div className="animate-pulse">Loading...</div>
+              </div>
+            ) : isAuthenticated && user ? (
+              <div className="hidden sm:flex items-center gap-3">
+                <span className="text-sm text-gray-400">
+                  {user.full_name || user.username}
+                </span>
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center gap-2 px-3 py-2 hover:bg-gray-900 rounded-lg transition text-sm text-red-400 hover:text-red-300"
+                >
+                  <LogOut size={16} />
+                  <span>{t("header.logout")}</span>
+                </button>
+              </div>
             ) : (
-              <button
-                onClick={handleLogout}
-                className="hidden sm:flex items-center gap-2 px-3 py-2 hover:bg-gray-900 rounded-lg transition text-sm text-red-400 hover:text-red-300"
-              >
-                <LogOut size={16} />
-                <span>{t('header.logout')}</span>
-              </button>
+              <div className="hidden sm:block">
+                <GoogleLogin
+                  onSuccess={handleGoogleLogin}
+                  onError={() => alert("Google login failed")}
+                  theme="filled_black"
+                  size="medium"
+                />
+              </div>
             )}
 
-            {/* Mobile Menu Button */}
+            {/* Mobile menu button */}
             <button
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              onClick={() => setIsMobileMenuOpen((v) => !v)}
               className="lg:hidden p-2 hover:bg-gray-900 rounded-lg"
+              aria-label="Toggle mobile menu"
             >
               <div className="w-6 h-5 flex flex-col justify-between">
                 <span className="h-0.5 bg-white rounded"></span>
@@ -151,67 +177,78 @@ const Header = ({ isDark, setIsDark }) => {
           </div>
         </div>
 
-        {/* Mobile Navigation */}
+        {/* Mobile nav */}
         {isMobileMenuOpen && (
           <div className="lg:hidden pb-4 border-t border-gray-900">
             <nav className="flex flex-col gap-3 pt-4">
-              <button onClick={() => navigate('/')} className="text-gray-300 hover:text-white transition px-2 py-2 text-left bg-none border-none cursor-pointer">{t('header.home')}</button>
-              <button onClick={() => navigate('/election')} className="text-gray-300 hover:text-white transition px-2 py-2 text-left bg-none border-none cursor-pointer">{t('header.events')}</button>
-              <button onClick={() => navigate('/party')} className="text-gray-300 hover:text-white transition px-2 py-2 text-left bg-none border-none cursor-pointer">{t('header.party')}</button>
-              <button onClick={() => navigate('/news')} className="text-gray-300 hover:text-white transition px-2 py-2 text-left bg-none border-none cursor-pointer">{t('header.news')}</button>
-              <button onClick={() => navigate('/about')} className="text-gray-300 hover:text-white transition px-2 py-2 text-left bg-none border-none cursor-pointer">{t('header.about')}</button>
-              <button onClick={handleChatClick} className="text-gray-300 hover:text-white transition px-2 py-2 text-left bg-none border-none cursor-pointer flex items-center gap-2">
-                <MessageCircle size={16} />
-                <span>{t('header.chat')}</span>
-              </button>
+              {navigationItems.map(({ path, label }) => (
+                <button
+                  key={path}
+                  onClick={() => {
+                    navigate(path);
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className="text-gray-300 hover:text-white px-2 py-2 text-left"
+                >
+                  {label}
+                </button>
+              ))}
 
-              {/* Mobile Language Selector */}
               <div className="border-t border-gray-700 pt-3 mt-3">
+                {/* Language selector mobile */}
                 <p className="text-gray-400 text-xs px-2 mb-2">Language</p>
-                <button
-                  onClick={() => handleLanguageChange('en')}
-                  className={`w-full text-left px-2 py-2 flex items-center gap-2 transition ${language === 'en' ? 'text-pink-400' : 'text-gray-300'}`}
-                >
-                  <span className="text-lg">🇬🇧</span>
-                  <span>English</span>
-                </button>
-                <button
-                  onClick={() => handleLanguageChange('ne')}
-                  className={`w-full text-left px-2 py-2 flex items-center gap-2 transition ${language === 'ne' ? 'text-pink-400' : 'text-gray-300'}`}
-                >
-                  <span className="text-lg">🇳🇵</span>
-                  <span>नेपाली</span>
-                </button>
+                {languageOptions.map(({ code, flag, label }) => (
+                  <button
+                    key={code}
+                    onClick={() => {
+                      handleLanguageChange(code);
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className={`w-full text-left px-2 py-2 flex items-center gap-2 transition ${
+                      language === code ? "text-pink-400" : "text-gray-300"
+                    }`}
+                  >
+                    <span className="text-lg">{flag}</span>
+                    <span>{label}</span>
+                  </button>
+                ))}
               </div>
 
-              {/* Mobile Logout/Login */}
-              {!isLoggedIn ? (
-                <button
-                  onClick={() => navigate('/auth')}
-                  className="text-left text-gray-300 hover:text-white transition px-2 py-2 flex items-center gap-2 bg-none border-none cursor-pointer"
-                >
-                  <LogIn size={16} />
-                  <span>{t('header.login')}</span>
-                </button>
+              {/* Auth mobile */}
+              {!isInitialized ? (
+                <p className="text-gray-400 text-sm px-2 animate-pulse">
+                  Loading...
+                </p>
+              ) : isAuthenticated && user ? (
+                <>
+                  <p className="text-gray-400 text-sm px-2 mb-2">
+                    {user.full_name || user.username}
+                  </p>
+                  <button
+                    onClick={() => {
+                      handleLogout();
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className="text-left text-red-400 hover:text-red-300 px-2 py-2 flex items-center gap-2"
+                  >
+                    <LogOut size={16} />
+                    <span>{t("header.logout")}</span>
+                  </button>
+                </>
               ) : (
-                <button
-                  onClick={handleLogout}
-                  className="text-left text-red-400 hover:text-red-300 transition px-2 py-2 flex items-center gap-2 bg-none border-none cursor-pointer"
-                >
-                  <LogOut size={16} />
-                  <span>{t('header.logout')}</span>
-                </button>
+                <div className="px-2 py-2">
+                  <GoogleLogin
+                    onSuccess={handleGoogleLogin}
+                    onError={() => alert("Google login failed")}
+                    theme="filled_black"
+                    size="medium"
+                  />
+                </div>
               )}
             </nav>
           </div>
         )}
       </div>
-
-      {/* OmniWidget Button  */}
-      <button
-        id="omni-open-widget-btn"
-        style={{ display: 'none' }}
-      ></button>
     </header>
   );
 };

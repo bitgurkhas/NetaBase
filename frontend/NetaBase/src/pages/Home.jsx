@@ -9,6 +9,7 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
+import axios from "axios";
 
 export default function Home() {
   const navigate = useNavigate();
@@ -24,71 +25,53 @@ export default function Home() {
     previous: null,
   });
 
-  const baseUrl = import.meta.env.VITE_BASE_URL;
+  // Use env or fallback to empty string
+  const baseUrl = import.meta.env.VITE_BASE_URL ?? "";
+
   const searchInputRef = useRef(null);
   const pageSize = 12;
 
+  // ---------------------------------------------
+  // Fetch politicians with axios
+  // ---------------------------------------------
   useEffect(() => {
     const fetchPoliticians = async () => {
       try {
         setLoading(true);
 
-        // Build query parameters
         const params = new URLSearchParams();
 
-        // Add page size
         params.append("page_size", pageSize);
-
-        // Add page number
         params.append("page", currentPage);
 
-        // Add search parameter
         if (searchTerm.trim()) {
           params.append("search", searchTerm.trim());
         }
 
-        // Add ordering parameter
-        if (sortBy) {
-          let orderingValue = "";
-          switch (sortBy) {
-            case "name":
-              orderingValue = "name";
-              break;
-            case "name_desc":
-              orderingValue = "-name";
-              break;
-            case "rating_high":
-              orderingValue = "-average_rating";
-              break;
-            case "rating_low":
-              orderingValue = "average_rating";
-              break;
-            case "age_old":
-              orderingValue = "-age";
-              break;
-            case "age_young":
-              orderingValue = "age";
-              break;
-            default:
-              orderingValue = "name";
-          }
-          params.append("ordering", orderingValue);
-        }
+        // Sorting logic
+        const orderingMap = {
+          name: "name",
+          name_desc: "-name",
+          rating_high: "-average_rating",
+          rating_low: "average_rating",
+          age_old: "-age",
+          age_young: "age",
+        };
+        params.append("ordering", orderingMap[sortBy] || "name");
 
+        // Backend URL (proxy will handle /api)
         const url = `${baseUrl}/api/politicians/?${params.toString()}`;
-        const response = await fetch(url);
 
-        if (!response.ok) throw new Error("Failed to fetch politicians");
+        const response = await axios.get(url);
+        const data = response.data;
 
-        const data = await response.json();
-
-        // Handle paginated response
         setPoliticians(data.results || []);
         setPagination({
           count: data.count || 0,
           next: data.next || null,
           previous: data.previous || null,
         });
+
         setError(null);
       } catch (err) {
         console.error("Error fetching politicians:", err);
@@ -99,60 +82,13 @@ export default function Home() {
       }
     };
 
-    // Increased debounce delay to 600ms to reduce backend requests
-    const timeoutId = setTimeout(() => {
-      fetchPoliticians();
-    }, 600);
-
+    const timeoutId = setTimeout(fetchPoliticians, 600);
     return () => clearTimeout(timeoutId);
   }, [baseUrl, searchTerm, sortBy, currentPage]);
 
-  // Reset to page 1 when search or sort changes
   useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm, sortBy]);
-
-  const StarRating = ({ rating, ratedBy }) => {
-    const stars = [];
-    const numRating = parseFloat(rating) || 0;
-    const fullStars = Math.floor(numRating);
-    const hasHalfStar = numRating % 1 >= 0.25;
-    const halfStarFill = ((numRating % 1) * 100).toFixed(0);
-
-    for (let i = 0; i < 5; i++) {
-      if (i < fullStars) {
-        // Full star
-        stars.push(
-          <Star key={i} size={20} className="fill-yellow-400 text-yellow-400" />
-        );
-      } else if (i === fullStars && hasHalfStar) {
-        // Partial star
-        stars.push(
-          <div key={i} className="relative inline-block">
-            <Star size={20} className="text-gray-600" />
-            <div
-              className="absolute top-0 left-0 overflow-hidden"
-              style={{ width: `${halfStarFill}%` }}
-            >
-              <Star size={20} className="fill-yellow-400 text-yellow-400" />
-            </div>
-          </div>
-        );
-      } else {
-        // Empty star
-        stars.push(<Star key={i} size={20} className="text-gray-600" />);
-      }
-    }
-
-    return (
-      <div className="flex items-center gap-1">
-        <div className="flex">{stars}</div>
-        {ratedBy > 0 && (
-          <span className="text-xs text-gray-400 ml-1">({ratedBy})</span>
-        )}
-      </div>
-    );
-  };
 
   const handleCardClick = (slug) => {
     navigate(`/politician/${slug}`);
@@ -160,11 +96,8 @@ export default function Home() {
 
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
-    // Keep focus on the input after state update
     if (searchInputRef.current) {
-      setTimeout(() => {
-        searchInputRef.current.focus();
-      }, 0);
+      setTimeout(() => searchInputRef.current.focus(), 0);
     }
   };
 
@@ -184,6 +117,51 @@ export default function Home() {
 
   const totalPages = Math.ceil(pagination.count / pageSize);
 
+  // ---------------------------------------------
+  // Star Rating Component
+  // ---------------------------------------------
+  const StarRating = ({ rating, ratedBy }) => {
+    const stars = [];
+    const numRating = parseFloat(rating) || 0;
+    const fullStars = Math.floor(numRating);
+    const hasHalfStar = numRating % 1 >= 0.25;
+    const halfStarFill = ((numRating % 1) * 100).toFixed(0);
+
+    for (let i = 0; i < 5; i++) {
+      if (i < fullStars) {
+        stars.push(
+          <Star key={i} size={20} className="fill-yellow-400 text-yellow-400" />
+        );
+      } else if (i === fullStars && hasHalfStar) {
+        stars.push(
+          <div key={i} className="relative inline-block">
+            <Star size={20} className="text-gray-600" />
+            <div
+              className="absolute top-0 left-0 overflow-hidden"
+              style={{ width: `${halfStarFill}%` }}
+            >
+              <Star size={20} className="fill-yellow-400 text-yellow-400" />
+            </div>
+          </div>
+        );
+      } else {
+        stars.push(<Star key={i} size={20} className="text-gray-600" />);
+      }
+    }
+
+    return (
+      <div className="flex items-center gap-1">
+        <div className="flex">{stars}</div>
+        {ratedBy > 0 && (
+          <span className="text-xs text-gray-400 ml-1">({ratedBy})</span>
+        )}
+      </div>
+    );
+  };
+
+  // ---------------------------------------------
+  // Loading State
+  // ---------------------------------------------
   if (loading && politicians.length === 0) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-black">
@@ -195,6 +173,9 @@ export default function Home() {
     );
   }
 
+  // ---------------------------------------------
+  // Error State
+  // ---------------------------------------------
   if (error && politicians.length === 0) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-black">
@@ -207,9 +188,11 @@ export default function Home() {
     );
   }
 
+  // ---------------------------------------------
+  // Main UI
+  // ---------------------------------------------
   return (
     <main className="bg-black text-white min-h-screen">
-      {/* Hero Section */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-20">
         <div className="text-center mb-12 sm:mb-16">
           <div className="flex items-center justify-center gap-3 mb-4">
@@ -227,14 +210,11 @@ export default function Home() {
           </p>
         </div>
 
-        {/* Search and Filter */}
+        {/* Search + Sort */}
         <div className="mb-12 space-y-4">
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
             <div className="flex-1 relative">
-              <Search
-                className="absolute left-4 top-4 text-gray-600"
-                size={20}
-              />
+              <Search className="absolute left-4 top-4 text-gray-600" size={20} />
               <input
                 ref={searchInputRef}
                 type="text"
@@ -247,6 +227,7 @@ export default function Home() {
                 <Loader className="absolute right-4 top-4 w-5 h-5 animate-spin text-pink-600" />
               )}
             </div>
+
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
@@ -261,7 +242,6 @@ export default function Home() {
             </select>
           </div>
 
-          {/* Results count and page info */}
           {pagination.count > 0 && (
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
               <p className="text-sm text-gray-400">
@@ -277,21 +257,21 @@ export default function Home() {
           )}
         </div>
 
-        {/* Politicians Grid */}
+        {/* Grid */}
         {politicians.length > 0 ? (
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-              {politicians.map((politician) => (
+              {politicians.map((p) => (
                 <div
-                  key={politician.slug}
-                  onClick={() => handleCardClick(politician.slug)}
+                  key={p.slug}
+                  onClick={() => handleCardClick(p.slug)}
                   className="group cursor-pointer rounded-xl overflow-hidden hover:transform hover:scale-105 transition-all duration-300 border border-gray-800 hover:border-pink-600"
                 >
                   <div className="relative h-64 sm:h-72 bg-linear-to-br from-gray-800 to-gray-900 overflow-hidden">
-                    {politician.photo ? (
+                    {p.photo ? (
                       <img
-                        src={politician.photo}
-                        alt={politician.name}
+                        src={p.photo}
+                        alt={p.name}
                         className="w-full h-full object-cover group-hover:brightness-125 transition duration-300"
                       />
                     ) : (
@@ -300,46 +280,38 @@ export default function Home() {
                       </div>
                     )}
 
-                    {politician.average_rating &&
-                      parseFloat(politician.average_rating) > 0 && (
-                        <div className="absolute top-3 right-3 sm:top-4 sm:right-4 bg-black/80 backdrop-blur-sm px-3 py-2 rounded-lg shadow-lg">
-                          <StarRating
-                            rating={politician.average_rating}
-                            ratedBy={politician.rated_by || 0}
-                          />
-                        </div>
-                      )}
+                    {p.average_rating && parseFloat(p.average_rating) > 0 && (
+                      <div className="absolute top-3 right-3 sm:top-4 sm:right-4 bg-black/80 backdrop-blur-sm px-3 py-2 rounded-lg shadow-lg">
+                        <StarRating rating={p.average_rating} ratedBy={p.rated_by || 0} />
+                      </div>
+                    )}
 
                     <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition duration-300"></div>
                   </div>
 
                   <div className="bg-gray-950 p-4 sm:p-6">
                     <h3 className="font-bold text-lg sm:text-xl mb-1 line-clamp-2">
-                      {politician.name}
+                      {p.name}
                     </h3>
 
-                    {politician.party_name && (
+                    {p.party_name && (
                       <p className="text-pink-400 text-xs sm:text-sm font-semibold mb-3">
-                        {politician.party_name}
+                        {p.party_name}
                       </p>
                     )}
 
                     <div className="space-y-2 mb-4 text-xs sm:text-sm text-gray-400">
-                      {politician.age && (
+                      {p.age && (
                         <p>
-                          <span className="text-gray-300 font-medium">
-                            Age:
-                          </span>{" "}
-                          {politician.age} years
+                          <span className="text-gray-300 font-medium">Age:</span>{" "}
+                          {p.age} years
                         </p>
                       )}
 
-                      {politician.views !== undefined && (
+                      {p.views !== undefined && (
                         <p>
-                          <span className="text-gray-300 font-medium">
-                            Views:
-                          </span>{" "}
-                          {politician.views}
+                          <span className="text-gray-300 font-medium">Views:</span>{" "}
+                          {p.views}
                         </p>
                       )}
                     </div>
@@ -348,7 +320,7 @@ export default function Home() {
               ))}
             </div>
 
-            {/* Pagination Controls */}
+            {/* Pagination */}
             {totalPages > 1 && (
               <div className="mt-12 flex justify-center items-center gap-4">
                 <button
@@ -361,9 +333,7 @@ export default function Home() {
                 </button>
 
                 <div className="flex items-center gap-2 px-4 py-3 bg-gray-950 border border-gray-800 rounded-lg text-gray-400 text-sm sm:text-base">
-                  <span className="font-semibold text-white">
-                    {currentPage}
-                  </span>
+                  <span className="font-semibold text-white">{currentPage}</span>
                   <span>/</span>
                   <span>{totalPages}</span>
                 </div>

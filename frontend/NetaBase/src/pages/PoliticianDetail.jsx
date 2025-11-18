@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import axios from "axios";
 import { ArrowLeft, Zap, Target } from "lucide-react";
 import { motion } from "framer-motion";
 
+import api from "../services/api";
+import { useAuthStore } from "../services/useAuthStore";
 import LoadingState from "../components/LoadingState";
 import ErrorState from "../components/ErrorState";
 import PoliticianInfo from "../components/PoliticianInfo";
@@ -29,9 +30,10 @@ export default function PoliticianDetail() {
 
   const { slug } = useParams();
   const navigate = useNavigate();
-  const baseUrl = import.meta.env.VITE_BASE_URL;
-  const token = localStorage.getItem("token");
-  const userId = localStorage.getItem("user_id");
+  
+  // Get user from auth store instead of sessionStorage
+  const user = useAuthStore((state) => state.user);
+  const userId = user?.id;
 
   useEffect(() => {
     const fetchData = async () => {
@@ -39,25 +41,27 @@ export default function PoliticianDetail() {
         setLoading(true);
         
         // Fetch politician details
-        const politicianRes = await axios.get(`${baseUrl}/api/politicians/${slug}/`);
+        const politicianRes = await api.get(`/api/politicians/${slug}/`);
         setPolitician(politicianRes.data);
 
         // Fetch ratings for this politician
-        const ratingsRes = await axios.get(`${baseUrl}/api/politicians/${slug}/ratings/`);
+        const ratingsRes = await api.get(`/api/politicians/${slug}/ratings/`);
         
         // Handle paginated response
         const ratingsData = ratingsRes.data.results || ratingsRes.data;
         setRatings(ratingsData);
 
-        // Find user's existing review
-        const existingReview = ratingsData.find(
-          (r) => String(r.user_id) === String(userId)
-        );
-        
-        if (existingReview) {
-          setUserReview(existingReview);
-          setScore(existingReview.score);
-          setComment(existingReview.comment || "");
+        // Find user's existing review (only if user is logged in)
+        if (userId) {
+          const existingReview = ratingsData.find(
+            (r) => String(r.user_id) === String(userId)
+          );
+          
+          if (existingReview) {
+            setUserReview(existingReview);
+            setScore(existingReview.score);
+            setComment(existingReview.comment || "");
+          }
         }
 
         // Fetch initiatives and promises from politician detail response
@@ -78,19 +82,19 @@ export default function PoliticianDetail() {
     if (slug) {
       fetchData();
     }
-  }, [slug, baseUrl, userId]);
+  }, [slug, userId]);
 
   const onSubmit = (e) => {
     handleReviewSubmit(
       e,
-      { token, baseUrl, slug, userId, score, comment, userReview },
+      { slug, userId, score, comment, userReview },
       { setSubmitting, setRatings, setUserReview, setIsEditingMode }
     );
   };
 
   const onDelete = () => {
     handleReviewDelete(
-      { token, baseUrl, slug, userReview },
+      { slug, userReview },
       { setRatings, setUserReview, setScore, setComment, setIsEditingMode }
     );
   };
@@ -138,7 +142,7 @@ export default function PoliticianDetail() {
             className="space-y-6"
           >
             {initiatives.length > 0 && (
-              <div className="bg-gradient-to-br from-[#1a1d2e] to-[#0f1118] border border-blue-500/20 rounded-xl p-6 shadow-lg hover:shadow-blue-500/10 transition-shadow">
+              <div className="bg-linear-to-br from-[#1a1d2e] to-[#0f1118] border border-blue-500/20 rounded-xl p-6 shadow-lg hover:shadow-blue-500/10 transition-shadow">
                 <div className="flex items-center gap-3 mb-4">
                   <Target size={24} className="text-blue-400" />
                   <h2 className="text-2xl font-bold text-white">Initiatives</h2>
@@ -152,7 +156,7 @@ export default function PoliticianDetail() {
                       transition={{ delay: idx * 0.1 }}
                       className="flex items-start gap-3 p-4 bg-blue-500/5 rounded-lg border border-blue-400/10"
                     >
-                      <div className="w-2 h-2 rounded-full bg-blue-400 mt-2 flex-shrink-0" />
+                      <div className="w-2 h-2 rounded-full bg-blue-400 mt-2 shrink-0" />
                       <div className="flex-1">
                         <h3 className="font-semibold text-white mb-1">{initiative.title}</h3>
                         {initiative.description && (
@@ -166,7 +170,7 @@ export default function PoliticianDetail() {
             )}
 
             {promises.length > 0 && (
-              <div className="bg-gradient-to-br from-[#1a1d2e] to-[#0f1118] border border-green-500/20 rounded-xl p-6 shadow-lg hover:shadow-green-500/10 transition-shadow">
+              <div className="bg-linear-to-br from-[#1a1d2e] to-[#0f1118] border border-green-500/20 rounded-xl p-6 shadow-lg hover:shadow-green-500/10 transition-shadow">
                 <div className="flex items-center gap-3 mb-4">
                   <Zap size={24} className="text-green-400" />
                   <h2 className="text-2xl font-bold text-white">Promises</h2>
@@ -180,7 +184,7 @@ export default function PoliticianDetail() {
                       transition={{ delay: idx * 0.1 }}
                       className="flex items-start gap-3 p-4 bg-green-500/5 rounded-lg border border-green-400/10"
                     >
-                      <div className="w-2 h-2 rounded-full bg-green-400 mt-2 flex-shrink-0" />
+                      <div className="w-2 h-2 rounded-full bg-green-400 mt-2 shrink-0" />
                       <div className="flex-1">
                         <h3 className="font-semibold text-white mb-1">{promise.title}</h3>
                         {promise.description && (
@@ -207,7 +211,6 @@ export default function PoliticianDetail() {
 
         <RatingsList
           ratings={ratings}
-          token={token}
           userId={userId}
           isEditingMode={isEditingMode}
           onEdit={() => setIsEditingMode(true)}
