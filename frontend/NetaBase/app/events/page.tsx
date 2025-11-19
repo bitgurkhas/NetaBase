@@ -1,4 +1,4 @@
-import NepalElectionCountdown from "@/app/election/Election";
+import NepalElectionCountdown from "@/app/events/Election";
 
 export const metadata = {
   title: "Events",
