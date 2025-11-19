@@ -6,7 +6,6 @@ import Image from "next/image";
 import {
   Users,
   AlertCircle,
-  Loader,
   Search,
   Star,
   ChevronLeft,
@@ -30,6 +29,7 @@ export default function Home(): JSX.Element {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState<string>("");
+  const [searchInput, setSearchInput] = useState<string>("");
   const [sortBy, setSortBy] = useState<SortOption>("name");
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [pagination, setPagination] = useState<PaginationState>({
@@ -91,23 +91,37 @@ export default function Home(): JSX.Element {
       }
     };
 
-    const timeoutId = setTimeout(fetchPoliticians, 600);
-    return () => clearTimeout(timeoutId);
+    fetchPoliticians();
   }, [baseUrl, searchTerm, sortBy, currentPage]);
 
   useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm, sortBy]);
 
+  const handleSearchSubmit = (): void => {
+    setSearchTerm(searchInput);
+  };
+
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>): void => {
+    if (e.key === "Enter") {
+      handleSearchSubmit();
+    }
+  };
+
   const handleCardClick = (slug: string): void => {
     router.push(`/politician/${slug}`);
   };
 
   const handleSearchChange = (e: ChangeEvent<HTMLInputElement>): void => {
-    setSearchTerm(e.target.value);
+    setSearchInput(e.target.value);
     if (searchInputRef.current) {
       setTimeout(() => searchInputRef.current?.focus(), 0);
     }
+  };
+
+  const handleClearSearch = (): void => {
+    setSearchInput("");
+    setSearchTerm("");
   };
 
   const handlePreviousPage = (): void => {
@@ -166,50 +180,8 @@ export default function Home(): JSX.Element {
     );
   };
 
-  // ============================================
-  // LOADING STATE WITH SKELETON CARDS
-  // ============================================
-  if (loading && politicians.length === 0) {
-    return (
-      <main className="bg-black text-white min-h-screen">
-        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-8 lg:py-10">
-          <div className="text-center mb-10 sm:mb-12">
-            <div className="flex items-center justify-center gap-3 mb-4">
-              <Users className="w-10 h-10 text-pink-600" />
-              <h1 className="text-3xl sm:text-4xl lg:text-6xl font-bold leading-tight">
-                Nepali
-                <span className="bg-linear-to-r from-pink-600 to-blue-600 bg-clip-text text-transparent">
-                  {" "}
-                  Politicians
-                </span>
-              </h1>
-            </div>
-            <p className="text-base sm:text-lg lg:text-xl text-gray-400 max-w-2xl mx-auto">
-              Explore profiles and ratings of political leaders in Nepal
-            </p>
-          </div>
-
-          {/* Skeleton Search and Sort */}
-          <div className="mb-12 space-y-4">
-            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-              <div className="flex-1 h-12 bg-gray-900 border border-gray-800 rounded-lg animate-pulse"></div>
-              <div className="w-full sm:w-40 h-12 bg-gray-900 border border-gray-800 rounded-lg animate-pulse"></div>
-            </div>
-          </div>
-
-          {/* Skeleton Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-            {Array.from({ length: 12 }).map((_, index) => (
-              <SkeletonCard key={index} />
-            ))}
-          </div>
-        </section>
-      </main>
-    );
-  }
-
   // Error State
-  if (error && politicians.length === 0) {
+  if (error && !loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-black">
         <div className="text-center p-6 bg-red-900/20 border border-red-700 rounded-lg max-w-md">
@@ -243,51 +215,74 @@ export default function Home(): JSX.Element {
 
         {/* Search + Sort */}
         <div className="mb-12 space-y-4">
-          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-            <div className="flex-1 relative">
-              <Search
-                className="absolute left-4 top-4 text-gray-600"
-                size={20}
-              />
-              <input
-                ref={searchInputRef}
-                type="text"
-                placeholder="Search by name or party..."
-                value={searchTerm}
-                onChange={handleSearchChange}
-                className="w-full bg-gray-950 text-white pl-12 pr-12 py-3 sm:py-4 rounded-lg border border-gray-800 focus:outline-none focus:border-pink-600 focus:ring-1 focus:ring-pink-600 transition text-sm sm:text-base placeholder-gray-600"
-              />
-              {searchTerm && (
-                <button
-                  onClick={() => setSearchTerm("")}
-                  className="absolute cursor-pointer right-4 top-4 text-gray-600 hover:text-gray-400 transition"
-                  aria-label="Clear search"
-                >
-                  <X size={25} />
-                </button>
-              )}
-              {loading && politicians.length > 0 && (
-                <Loader className="absolute right-4 top-4 w-5 h-5 animate-spin text-pink-600" />
-              )}
+          {loading ? (
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+              <div className="flex-1 flex gap-2">
+                <div className="flex-1 h-12 sm:h-14 bg-gray-900 border border-gray-800 rounded-lg animate-pulse"></div>
+                <div className="w-12 sm:w-14 h-12 sm:h-14 bg-gray-900 border border-gray-800 rounded-lg animate-pulse"></div>
+              </div>
+              <div className="w-full sm:w-48 h-12 sm:h-14 bg-gray-900 border border-gray-800 rounded-lg animate-pulse"></div>
             </div>
+          ) : (
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+              <div className="flex-1 flex gap-2">
+                <div className="flex-1 relative">
+                  <Search
+                    className="absolute left-4 top-4 text-gray-600"
+                    size={20}
+                  />
+                  <input
+                    ref={searchInputRef}
+                    type="text"
+                    placeholder="Search by name or party..."
+                    value={searchInput}
+                    onChange={handleSearchChange}
+                    onKeyDown={handleSearchKeyDown}
+                    className="w-full bg-gray-950 text-white pl-12 pr-12 py-3 sm:py-4 rounded-lg border border-gray-800 focus:outline-none focus:border-pink-600 focus:ring-1 focus:ring-pink-600 transition text-sm sm:text-base placeholder-gray-600"
+                  />
+                  {searchInput && (
+                    <button
+                      onClick={handleClearSearch}
+                      className="absolute cursor-pointer right-4 top-4 text-gray-600 hover:text-gray-400 transition"
+                      aria-label="Clear search"
+                    >
+                      <X size={25} />
+                    </button>
+                  )}
+                </div>
+                <button
+                  onClick={handleSearchSubmit}
+                  className="px-4 sm:px-6 py-3 sm:py-4 bg-gray-950 border border-gray-800 hover:border-gray-700 hover:bg-gray-900 text-white rounded-lg transition-all duration-300 flex items-center justify-center"
+                  aria-label="Search"
+                >
+                  <Search size={20} />
+                </button>
+              </div>
 
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as SortOption)}
-              className="bg-gray-950 text-white px-4 py-3 sm:py-4 rounded-lg border border-gray-800 focus:outline-none focus:border-pink-600 focus:ring-1 focus:ring-pink-600 transition cursor-pointer text-sm sm:text-base"
-            >
-              <option value="name">Name (A-Z)</option>
-              <option value="name_desc">Name (Z-A)</option>
-              <option value="rating_high">Rating (High to Low)</option>
-              <option value="rating_low">Rating (Low to High)</option>
-              <option value="age_old">Age (Oldest First)</option>
-              <option value="age_young">Age (Youngest First)</option>
-            </select>
-          </div>
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as SortOption)}
+                className="bg-gray-950 text-white px-4 py-3 sm:py-4 rounded-lg border border-gray-800 focus:outline-none focus:border-pink-600 focus:ring-1 focus:ring-pink-600 transition cursor-pointer text-sm sm:text-base"
+              >
+                <option value="name">Name (A-Z)</option>
+                <option value="name_desc">Name (Z-A)</option>
+                <option value="rating_high">Rating (High to Low)</option>
+                <option value="rating_low">Rating (Low to High)</option>
+                <option value="age_old">Age (Oldest First)</option>
+                <option value="age_young">Age (Youngest First)</option>
+              </select>
+            </div>
+          )}
         </div>
 
-        {/* Grid */}
-        {politicians.length > 0 ? (
+        {/* Grid - Show skeletons when loading, otherwise show politicians */}
+        {loading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+            {Array.from({ length: 12 }).map((_, index) => (
+              <SkeletonCard key={index} />
+            ))}
+          </div>
+        ) : politicians.length > 0 ? (
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
               {politicians.map((p) => (
