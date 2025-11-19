@@ -8,7 +8,7 @@ export const SkeletonCard = (): JSX.Element => {
     <div className="group rounded-xl overflow-hidden border border-gray-800">
       {/* Image skeleton */}
       <div className="relative h-64 sm:h-72 bg-gray-900 overflow-hidden">
-        <div className="absolute inset-0 bg-linear-to-r from-transparent via-gray-700/50 to-transparent animate-shimmer"></div>
+        <div className="absolute inset-0 bg-linear-to-r from-transparent via-gray-700/50 to-transparent shimmer"></div>
       </div>
 
       {/* Content skeleton */}
@@ -39,8 +39,8 @@ export const SkeletonPartyCard = (): JSX.Element => {
       <div className="h-1 w-full bg-gray-800"></div>
 
       {/* Party logo area */}
-      <div className="h-64 bg-slate-800 flex items-center justify-center overflow-hidden">
-        <div className="absolute inset-0 bg-linear-to-r from-transparent via-slate-700/50 to-transparent animate-shimmer"></div>
+      <div className="relative h-64 bg-slate-800 flex items-center justify-center overflow-hidden">
+        <div className="absolute inset-0 bg-linear-to-r from-transparent via-slate-700/50 to-transparent shimmer"></div>
       </div>
 
       {/* Content */}
@@ -83,6 +83,19 @@ export const SkeletonLoaderPage = ({
 }: SkeletonLoaderPageProps): JSX.Element => {
   return (
     <main className="bg-black text-white min-h-screen">
+      <style>{`
+        @keyframes shimmer {
+          0% {
+            transform: translateX(-100%);
+          }
+          100% {
+            transform: translateX(100%);
+          }
+        }
+        .shimmer {
+          animation: shimmer 2s infinite;
+        }
+      `}</style>
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-8 lg:py-10">
         {/* Header skeleton */}
         <div className="text-center mb-10 sm:mb-12">
@@ -128,6 +141,19 @@ export const SkeletonLoaderPage = ({
 export const SkeletonPartiesPage = (): JSX.Element => {
   return (
     <div className="min-h-screen bg-black px-4 py-16">
+      <style>{`
+        @keyframes shimmer {
+          0% {
+            transform: translateX(-100%);
+          }
+          100% {
+            transform: translateX(100%);
+          }
+        }
+        .shimmer {
+          animation: shimmer 2s infinite;
+        }
+      `}</style>
       <div className="max-w-7xl mx-auto">
         {/* Header skeleton */}
         <div className="mb-16">
@@ -159,21 +185,34 @@ export const SkeletonGrid = ({
   itemCount = 12,
   type = "card",
 }: SkeletonGridProps): JSX.Element => {
-  if (type === "party") {
-    return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {Array.from({ length: itemCount }).map((_, index) => (
-          <SkeletonPartyCard key={index} />
-        ))}
-      </div>
-    );
-  }
-
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-      {Array.from({ length: itemCount }).map((_, index) => (
-        <SkeletonCard key={index} />
-      ))}
-    </div>
+    <>
+      <style>{`
+        @keyframes shimmer {
+          0% {
+            transform: translateX(-100%);
+          }
+          100% {
+            transform: translateX(100%);
+          }
+        }
+        .shimmer {
+          animation: shimmer 2s infinite;
+        }
+      `}</style>
+      {type === "party" ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {Array.from({ length: itemCount }).map((_, index) => (
+            <SkeletonPartyCard key={index} />
+          ))}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+          {Array.from({ length: itemCount }).map((_, index) => (
+            <SkeletonCard key={index} />
+          ))}
+        </div>
+      )}
+    </>
   );
 };
