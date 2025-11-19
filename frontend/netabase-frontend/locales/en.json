@@ -1,0 +1,33 @@
+{
+  "header": {
+    "home": "Home",
+    "events": "Events",
+    "party": "Party",
+    "news": "News",
+    "about": "About",
+    "chat": "Chat",
+    "login": "Login",
+    "logout": "Logout"
+  },
+  "home": {
+    "title": "Welcome to NetaBase",
+    "description": "Explore Nepali Politics"
+  },
+  "election": {
+    "title": "Nepal Election Map",
+    "description": "Click on any district to view election results"
+  },
+  "politician": {
+    "initiatives": "Initiatives",
+    "promises": "Promises",
+    "ratings": "Ratings",
+    "reviews": "Reviews"
+  },
+  "news": {
+    "title": "Nepali Politics",
+    "description": "Explore the latest political news and updates from Nepal",
+    "allNews": "All News",
+    "withImages": "With Images",
+    "noResults": "No political news found"
+  }
+}
