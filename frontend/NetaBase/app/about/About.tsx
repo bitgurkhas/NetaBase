@@ -7,7 +7,6 @@ import {
   BookOpen,
   Scale,
   Image,
-  CheckCircle,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
@@ -172,26 +171,6 @@ export default function AboutPage() {
                 Ref: Article 17, Article 19 ETA (Article 57) & Privacy Law
               </p>
             </div>
-          </div>
-        </div>
-
-        {/* Call to Action */}
-        <div className="mt-20 text-center">
-          <div className="bg-linear-to-r from-pink-600/20 to-blue-600/20 rounded-2xl p-8 sm:p-12 border border-pink-600/50">
-            <CheckCircle className="text-pink-600 mx-auto mb-4" size={48} />
-            <h3 className="text-2xl sm:text-3xl font-bold mb-4">
-              Join the Movement
-            </h3>
-            <p className="text-gray-300 text-lg max-w-2xl mx-auto mb-6">
-              Your voice matters. Rate politicians, share your opinions, and
-              contribute to a more accountable democracy in Nepal.
-            </p>
-            <button
-              onClick={() => router.push("/")}
-              className="bg-linear-to-r from-pink-600 to-blue-600 text-white px-8 py-4 rounded-lg font-semibold text-lg hover:shadow-lg hover:shadow-pink-600/50 transition-all duration-300"
-            >
-              Start Rating Now
-            </button>
           </div>
         </div>
       </section>
