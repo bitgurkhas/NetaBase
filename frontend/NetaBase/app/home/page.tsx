@@ -2,7 +2,7 @@ import Home from "@/app/home/Home";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "NetaBase | Home",
+  title: "Home",
   description: "Explore profiles and ratings of political leaders in Nepal",
 };
 

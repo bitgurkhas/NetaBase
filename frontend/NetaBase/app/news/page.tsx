@@ -1,7 +1,7 @@
 import PoliticsNewsWidget from "@/app/news/News";
 
 export const metadata = {
-  title: "NetaBase | News",
+  title: "News",
   description: "Stay updated with the latest political news from Nepal",
 };
 

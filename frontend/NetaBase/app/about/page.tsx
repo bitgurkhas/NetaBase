@@ -1,7 +1,7 @@
 import AboutPage from "@/app/about/About";
 
 export const metadata = {
-  title: "NetaBase | About",
+  title: "About",
   description: "Learn about NetaBase's mission to promote transparency and accountability in Nepali politics",
 };
 
