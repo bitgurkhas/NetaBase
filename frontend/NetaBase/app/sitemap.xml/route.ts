@@ -1,15 +1,24 @@
 export async function GET() {
   const baseUrl = process.env.NEXT_FRONTEND_BASE_URL;
-  const apiUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/politicians`;
+  const apiUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/api/politicians/`;
 
-  let politicians = [];
+  let allPoliticians: any[] = [];
+  let nextPage = apiUrl;
+
+  // Fetch ALL paginated politicians
   try {
-    const res = await fetch(apiUrl);
-    politicians = await res.json();
+    while (nextPage) {
+      const res = await fetch(nextPage, { cache: "no-store" });
+      const data = await res.json();
+      console.log(data)
+      allPoliticians = [...allPoliticians, ...data.results];
+      nextPage = data.next; // pagination
+    }
   } catch (err) {
     console.error("Failed to fetch politicians:", err);
   }
 
+  // Static pages
   const staticUrls = [
     `${baseUrl}/home`,
     `${baseUrl}/about`,
@@ -18,13 +27,16 @@ export async function GET() {
     `${baseUrl}/events`,
   ];
 
-  const politicianUrls = politicians.map((p: any) => {
-    return `${baseUrl}/politicians/${p.slug}`;
+  // Politician detail pages
+  const politicianUrls = allPoliticians.map((p) => {
+    return `${baseUrl}/politician/${p.slug}`;
   });
+
+  const allUrls = [...staticUrls, ...politicianUrls];
 
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
   <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-    ${[...staticUrls, ...politicianUrls]
+    ${allUrls
       .map(
         (url) => `
       <url>
