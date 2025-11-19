@@ -8,3 +8,4 @@ data.json
 populate_from_json.py
 .pytest_cache
 filled_data.json
+NetaBase-old
