@@ -11,10 +11,16 @@ import {
   Star,
   ChevronLeft,
   ChevronRight,
+  X,
 } from "lucide-react";
 import axios, { AxiosError } from "axios";
-import { Politician, SortOption, PaginationState, PoliticiansApiResponse, StarRatingProps } from "@/types";
-
+import {
+  Politician,
+  SortOption,
+  PaginationState,
+  PoliticiansApiResponse,
+  StarRatingProps,
+} from "@/types";
 
 export default function Home(): JSX.Element {
   const router = useRouter();
@@ -29,7 +35,6 @@ export default function Home(): JSX.Element {
     next: null,
     previous: null,
   });
-
 
   const baseUrl: string = process.env.NEXT_PUBLIC_BASE_URL ?? "";
 
@@ -80,9 +85,10 @@ export default function Home(): JSX.Element {
         setError(null);
       } catch (err) {
         console.error("Error fetching politicians:", err);
-        const errorMessage = err instanceof AxiosError 
-          ? err.message 
-          : "Failed to fetch politicians";
+        const errorMessage =
+          err instanceof AxiosError
+            ? err.message
+            : "Failed to fetch politicians";
         setError(errorMessage);
         setPoliticians([]);
       } finally {
@@ -222,15 +228,27 @@ export default function Home(): JSX.Element {
         <div className="mb-12 space-y-4">
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
             <div className="flex-1 relative">
-              <Search className="absolute left-4 top-4 text-gray-600" size={20} />
+              <Search
+                className="absolute left-4 top-4 text-gray-600"
+                size={20}
+              />
               <input
                 ref={searchInputRef}
                 type="text"
                 placeholder="Search by name or party..."
                 value={searchTerm}
                 onChange={handleSearchChange}
-                className="w-full bg-gray-950 text-white pl-12 pr-4 py-3 sm:py-4 rounded-lg border border-gray-800 focus:outline-none focus:border-pink-600 focus:ring-1 focus:ring-pink-600 transition text-sm sm:text-base placeholder-gray-600"
+                className="w-full bg-gray-950 text-white pl-12 pr-12 py-3 sm:py-4 rounded-lg border border-gray-800 focus:outline-none focus:border-pink-600 focus:ring-1 focus:ring-pink-600 transition text-sm sm:text-base placeholder-gray-600"
               />
+              {searchTerm && (
+                <button
+                  onClick={() => setSearchTerm("")}
+                  className="absolute cursor-pointer right-4 top-4 text-gray-600 hover:text-gray-400 transition"
+                  aria-label="Clear search"
+                >
+                  <X size={25} />
+                </button>
+              )}
               {loading && politicians.length > 0 && (
                 <Loader className="absolute right-4 top-4 w-5 h-5 animate-spin text-pink-600" />
               )}
@@ -249,8 +267,6 @@ export default function Home(): JSX.Element {
               <option value="age_young">Age (Youngest First)</option>
             </select>
           </div>
-
-
         </div>
 
         {/* Grid */}
@@ -279,11 +295,15 @@ export default function Home(): JSX.Element {
                       </div>
                     )}
 
-                    {p.average_rating && parseFloat(p.average_rating.toString()) > 0 && (
-                      <div className="absolute top-3 right-3 sm:top-4 sm:right-4 bg-black/80 backdrop-blur-sm px-3 py-2 rounded-lg shadow-lg z-10">
-                        <StarRating rating={p.average_rating} ratedBy={p.rated_by || 0} />
-                      </div>
-                    )}
+                    {p.average_rating &&
+                      parseFloat(p.average_rating.toString()) > 0 && (
+                        <div className="absolute top-3 right-3 sm:top-4 sm:right-4 bg-black/80 backdrop-blur-sm px-3 py-2 rounded-lg shadow-lg z-10">
+                          <StarRating
+                            rating={p.average_rating}
+                            ratedBy={p.rated_by || 0}
+                          />
+                        </div>
+                      )}
 
                     <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition duration-300"></div>
                   </div>
@@ -302,14 +322,18 @@ export default function Home(): JSX.Element {
                     <div className="space-y-2 mb-4 text-xs sm:text-sm text-gray-400">
                       {p.age && (
                         <p>
-                          <span className="text-gray-300 font-medium">Age:</span>{" "}
+                          <span className="text-gray-300 font-medium">
+                            Age:
+                          </span>{" "}
                           {p.age} years
                         </p>
                       )}
 
                       {p.views !== undefined && (
                         <p>
-                          <span className="text-gray-300 font-medium">Views:</span>{" "}
+                          <span className="text-gray-300 font-medium">
+                            Views:
+                          </span>{" "}
                           {p.views}
                         </p>
                       )}
@@ -332,7 +356,9 @@ export default function Home(): JSX.Element {
                 </button>
 
                 <div className="flex items-center gap-2 px-4 py-3 bg-gray-950 border border-gray-800 rounded-lg text-gray-400 text-sm sm:text-base">
-                  <span className="font-semibold text-white">{currentPage}</span>
+                  <span className="font-semibold text-white">
+                    {currentPage}
+                  </span>
                   <span>/</span>
                   <span>{totalPages}</span>
                 </div>
