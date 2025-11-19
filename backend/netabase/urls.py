@@ -9,7 +9,7 @@ from django.http import HttpResponse
 
 schema_view = get_schema_view(
     openapi.Info(
-        title="Smart Governance API",
+        title="NetaBase API",
         default_version='v1',
     ),
     public=True,
