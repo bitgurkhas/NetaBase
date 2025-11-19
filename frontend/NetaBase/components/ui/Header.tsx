@@ -4,9 +4,8 @@ import { useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { LogOut, Globe, ChevronDown } from "lucide-react";
+import { LogOut } from "lucide-react";
 import { GoogleLogin, CredentialResponse } from "@react-oauth/google";
-import { useLanguage } from "@/context/LanguageContext";
 import icon from "@/assets/NetaBase.png";
 import api from "@/services/api";
 import { useAuthStore } from "../../hooks/useAuthStore";
@@ -16,19 +15,11 @@ interface NavigationItem {
   label: string;
 }
 
-interface LanguageOption {
-  code: string;
-  flag: string;
-  label: string;
-}
-
 const Header = () => {
   const router = useRouter();
   const pathname = usePathname();
-  const { t, language, switchLanguage } = useLanguage();
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [showLanguageMenu, setShowLanguageMenu] = useState(false);
 
   // Get auth state from store
   const user = useAuthStore((state) => state.user);
@@ -64,23 +55,12 @@ const Header = () => {
     router.push("/");
   };
 
-  // Language change
-  const handleLanguageChange = (lang: string) => {
-    switchLanguage(lang);
-    setShowLanguageMenu(false);
-  };
-
   const navigationItems: NavigationItem[] = [
-    { path: "/home", label: t("header.home") },
-    { path: "/events", label: t("header.events") },
-    { path: "/party", label: t("header.party") },
-    { path: "/news", label: t("header.news") },
-    { path: "/about", label: t("header.about") },
-  ];
-
-  const languageOptions: LanguageOption[] = [
-    { code: "en", flag: "🇬🇧", label: "English" },
-    { code: "ne", flag: "🇳🇵", label: "नेपाली" },
+    { path: "/home", label: "Home" },
+    { path: "/events", label: "Events" },
+    { path: "/party", label: "Party" },
+    { path: "/news", label: "News" },
+    { path: "/about", label: "About" },
   ];
 
   return (
@@ -124,43 +104,6 @@ const Header = () => {
 
           {/* Right actions */}
           <div className="flex items-center gap-2 sm:gap-3">
-            {/* Language Selector */}
-            <div className="relative hidden sm:block">
-              <button
-                onClick={() => setShowLanguageMenu((v) => !v)}
-                className="flex items-center gap-2 px-3 py-2 hover:bg-gray-900 rounded-lg transition text-sm text-gray-300 hover:text-white"
-              >
-                <Globe size={16} />
-                <span>
-                  {language === "en" ? "🇬🇧" : "🇳🇵"} {language.toUpperCase()}
-                </span>
-                <ChevronDown
-                  size={14}
-                  className={`transition-transform ${
-                    showLanguageMenu ? "rotate-180" : ""
-                  }`}
-                />
-              </button>
-              {showLanguageMenu && (
-                <div className="absolute right-0 mt-2 w-40 bg-gray-900 border border-gray-700 rounded-lg shadow-xl py-2 z-50">
-                  {languageOptions.map(({ code, flag, label }) => (
-                    <button
-                      key={code}
-                      onClick={() => handleLanguageChange(code)}
-                      className={`w-full text-left px-4 py-2 flex items-center gap-2 hover:bg-gray-800 transition ${
-                        language === code
-                          ? "text-pink-400 bg-gray-800"
-                          : "text-gray-300"
-                      }`}
-                    >
-                      <span className="text-lg">{flag}</span>
-                      <span>{label}</span>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-
             {/* Auth Section */}
             {!isInitialized ? (
               <div className="hidden sm:flex items-center gap-2 text-sm text-gray-400">
@@ -176,7 +119,7 @@ const Header = () => {
                   className="flex items-center gap-2 px-3 py-2 hover:bg-gray-900 rounded-lg transition text-sm text-red-400 hover:text-red-300"
                 >
                   <LogOut size={16} />
-                  <span>{t("header.logout")}</span>
+                  <span>Logout</span>
                 </button>
               </div>
             ) : (
@@ -224,57 +167,39 @@ const Header = () => {
                 </Link>
               ))}
 
-              <div className="border-t border-gray-700 pt-3 mt-3">
-                {/* Language selector mobile */}
-                <p className="text-gray-400 text-xs px-2 mb-2">Language</p>
-                {languageOptions.map(({ code, flag, label }) => (
-                  <button
-                    key={code}
-                    onClick={() => {
-                      handleLanguageChange(code);
-                      setIsMobileMenuOpen(false);
-                    }}
-                    className={`w-full text-left px-2 py-2 flex items-center gap-2 transition ${
-                      language === code ? "text-pink-400" : "text-gray-300"
-                    }`}
-                  >
-                    <span className="text-lg">{flag}</span>
-                    <span>{label}</span>
-                  </button>
-                ))}
-              </div>
-
               {/* Auth mobile */}
-              {!isInitialized ? (
-                <p className="text-gray-400 text-sm px-2 animate-pulse">
-                  Loading...
-                </p>
-              ) : isAuthenticated && user ? (
-                <>
-                  <p className="text-gray-400 text-sm px-2 mb-2">
-                    {user.full_name || user.username}
+              <div className="border-t border-gray-700 pt-3 mt-3">
+                {!isInitialized ? (
+                  <p className="text-gray-400 text-sm px-2 animate-pulse">
+                    Loading...
                   </p>
-                  <button
-                    onClick={() => {
-                      handleLogout();
-                      setIsMobileMenuOpen(false);
-                    }}
-                    className="text-left text-red-400 hover:text-red-300 px-2 py-2 flex items-center gap-2"
-                  >
-                    <LogOut size={16} />
-                    <span>{t("header.logout")}</span>
-                  </button>
-                </>
-              ) : (
-                <div className="px-2 py-2">
-                  <GoogleLogin
-                    onSuccess={handleGoogleLogin}
-                    onError={() => alert("Google login failed")}
-                    theme="filled_black"
-                    size="medium"
-                  />
-                </div>
-              )}
+                ) : isAuthenticated && user ? (
+                  <>
+                    <p className="text-gray-400 text-sm px-2 mb-2">
+                      {user.full_name || user.username}
+                    </p>
+                    <button
+                      onClick={() => {
+                        handleLogout();
+                        setIsMobileMenuOpen(false);
+                      }}
+                      className="text-left text-red-400 hover:text-red-300 px-2 py-2 flex items-center gap-2"
+                    >
+                      <LogOut size={16} />
+                      <span>Logout</span>
+                    </button>
+                  </>
+                ) : (
+                  <div className="px-2 py-2">
+                    <GoogleLogin
+                      onSuccess={handleGoogleLogin}
+                      onError={() => alert("Google login failed")}
+                      theme="filled_black"
+                      size="medium"
+                    />
+                  </div>
+                )}
+              </div>
             </nav>
           </div>
         )}

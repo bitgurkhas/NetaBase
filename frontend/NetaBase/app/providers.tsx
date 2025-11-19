@@ -1,6 +1,5 @@
 "use client";
 
-import { LanguageProvider } from "@/context/LanguageContext";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import { ReactNode, useEffect } from "react";
 import Header from "@/components/ui/Header";
@@ -24,14 +23,12 @@ function AuthInitializer() {
 export function Providers({ children }: { children: ReactNode }) {
   return (
     <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
-      <LanguageProvider>
         <AuthInitializer />
         <Header />
         <ScrollToTop />
         {children}
         <SpeedInsights />
         <Analytics />
-      </LanguageProvider>
     </GoogleOAuthProvider>
   );
 }
