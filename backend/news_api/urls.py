@@ -1,6 +1,6 @@
 from django.urls import path
-from .views import get_ratopati_politics
+from news_api.views import PoliticsNewsAPIView
 
 urlpatterns = [
-    path("ratopati-politics/", get_ratopati_politics),
+    path("news/", PoliticsNewsAPIView.as_view()),
 ]
