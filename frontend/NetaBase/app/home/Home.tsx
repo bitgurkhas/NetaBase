@@ -250,19 +250,7 @@ export default function Home(): JSX.Element {
             </select>
           </div>
 
-          {pagination.count > 0 && (
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
-              <p className="text-sm text-gray-400">
-                Found {pagination.count} politician
-                {pagination.count !== 1 ? "s" : ""}
-              </p>
-              {totalPages > 1 && (
-                <p className="text-sm text-gray-400">
-                  Page {currentPage} of {totalPages}
-                </p>
-              )}
-            </div>
-          )}
+
         </div>
 
         {/* Grid */}
