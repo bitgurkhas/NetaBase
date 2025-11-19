@@ -72,7 +72,7 @@ const Header = () => {
 
   const navigationItems: NavigationItem[] = [
     { path: "/home", label: t("header.home") },
-    { path: "/election", label: t("header.events") },
+    { path: "/events", label: t("header.events") },
     { path: "/party", label: t("header.party") },
     { path: "/news", label: t("header.news") },
     { path: "/about", label: t("header.about") },
