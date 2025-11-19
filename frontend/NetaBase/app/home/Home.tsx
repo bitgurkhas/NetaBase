@@ -21,6 +21,8 @@ import {
   PoliticiansApiResponse,
   StarRatingProps,
 } from "@/types";
+import { SkeletonCard } from "@/components/ui/SkeletonLoader";
+
 
 export default function Home(): JSX.Element {
   const router = useRouter();
@@ -37,20 +39,16 @@ export default function Home(): JSX.Element {
   });
 
   const baseUrl: string = process.env.NEXT_PUBLIC_BASE_URL ?? "";
-
   const searchInputRef = useRef<HTMLInputElement>(null);
   const pageSize: number = 12;
 
-  // ---------------------------------------------
   // Fetch politicians with axios
-  // ---------------------------------------------
   useEffect(() => {
     const fetchPoliticians = async (): Promise<void> => {
       try {
         setLoading(true);
 
         const params = new URLSearchParams();
-
         params.append("page_size", pageSize.toString());
         params.append("page", currentPage.toString());
 
@@ -58,7 +56,6 @@ export default function Home(): JSX.Element {
           params.append("search", searchTerm.trim());
         }
 
-        // Sorting logic
         const orderingMap: Record<SortOption, string> = {
           name: "name",
           name_desc: "-name",
@@ -69,9 +66,7 @@ export default function Home(): JSX.Element {
         };
         params.append("ordering", orderingMap[sortBy] || "name");
 
-        // Backend URL
         const url: string = `${baseUrl}/api/politicians/?${params.toString()}`;
-
         const response = await axios.get<PoliticiansApiResponse>(url);
         const data = response.data;
 
@@ -131,9 +126,7 @@ export default function Home(): JSX.Element {
 
   const totalPages: number = Math.ceil(pagination.count / pageSize);
 
-  // ---------------------------------------------
   // Star Rating Component
-  // ---------------------------------------------
   const StarRating = ({ rating, ratedBy }: StarRatingProps): JSX.Element => {
     const stars: JSX.Element[] = [];
     const numRating: number = parseFloat(rating.toString()) || 0;
@@ -173,23 +166,49 @@ export default function Home(): JSX.Element {
     );
   };
 
-  // ---------------------------------------------
-  // Loading State
-  // ---------------------------------------------
+  // ============================================
+  // LOADING STATE WITH SKELETON CARDS
+  // ============================================
   if (loading && politicians.length === 0) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-black">
-        <div className="text-center">
-          <Loader className="w-12 h-12 animate-spin text-pink-600 mx-auto mb-4" />
-          <p className="text-gray-400">Loading politicians...</p>
-        </div>
-      </div>
+      <main className="bg-black text-white min-h-screen">
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-8 lg:py-10">
+          <div className="text-center mb-10 sm:mb-12">
+            <div className="flex items-center justify-center gap-3 mb-4">
+              <Users className="w-10 h-10 text-pink-600" />
+              <h1 className="text-3xl sm:text-4xl lg:text-6xl font-bold leading-tight">
+                Nepali
+                <span className="bg-linear-to-r from-pink-600 to-blue-600 bg-clip-text text-transparent">
+                  {" "}
+                  Politicians
+                </span>
+              </h1>
+            </div>
+            <p className="text-base sm:text-lg lg:text-xl text-gray-400 max-w-2xl mx-auto">
+              Explore profiles and ratings of political leaders in Nepal
+            </p>
+          </div>
+
+          {/* Skeleton Search and Sort */}
+          <div className="mb-12 space-y-4">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+              <div className="flex-1 h-12 bg-gray-900 border border-gray-800 rounded-lg animate-pulse"></div>
+              <div className="w-full sm:w-40 h-12 bg-gray-900 border border-gray-800 rounded-lg animate-pulse"></div>
+            </div>
+          </div>
+
+          {/* Skeleton Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+            {Array.from({ length: 12 }).map((_, index) => (
+              <SkeletonCard key={index} />
+            ))}
+          </div>
+        </section>
+      </main>
     );
   }
 
-  // ---------------------------------------------
   // Error State
-  // ---------------------------------------------
   if (error && politicians.length === 0) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-black">
@@ -202,9 +221,7 @@ export default function Home(): JSX.Element {
     );
   }
 
-  // ---------------------------------------------
   // Main UI
-  // ---------------------------------------------
   return (
     <main className="bg-black text-white min-h-screen">
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-8 lg:py-10">

@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { ChevronRight, Loader2, AlertCircle } from 'lucide-react';
+import { ChevronRight, AlertCircle } from 'lucide-react';
 import api from '@/services/api';
+import { SkeletonPartiesPage } from '@/components/ui/SkeletonLoader';
 
 interface Party {
   id: number;
@@ -86,17 +87,16 @@ export default function PoliticalPartiesSection() {
     return colors[id % colors.length];
   };
 
+  // ============================================
+  // LOADING STATE
+  // ============================================
   if (loading) {
-    return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="w-12 h-12 text-pink-500 animate-spin mx-auto mb-4" />
-          <p className="text-gray-400">Loading parties...</p>
-        </div>
-      </div>
-    );
+    return <SkeletonPartiesPage />;
   }
 
+  // ============================================
+  // ERROR STATE
+  // ============================================
   if (error) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center px-4">
@@ -115,6 +115,9 @@ export default function PoliticalPartiesSection() {
     );
   }
 
+  // ============================================
+  // MAIN UI
+  // ============================================
   return (
     <div className="min-h-screen bg-black px-4 py-16">
       <div className="max-w-7xl mx-auto">
@@ -231,8 +234,10 @@ export default function PoliticalPartiesSection() {
 
                   {loadingPoliticians ? (
                     <div className="text-center py-8">
-                      <Loader2 className="w-8 h-8 text-pink-500 animate-spin mx-auto mb-2" />
-                      <p className="text-gray-400">Loading politicians...</p>
+                      <div className="inline-block">
+                        <div className="w-8 h-8 border-4 border-pink-600 border-t-transparent rounded-full animate-spin"></div>
+                      </div>
+                      <p className="text-gray-400 mt-2">Loading politicians...</p>
                     </div>
                   ) : selectedPartyPoliticians.length > 0 ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

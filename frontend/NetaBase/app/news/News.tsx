@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Newspaper, Loader, AlertCircle, Calendar, Building2, User, ExternalLink } from "lucide-react";
+import { Newspaper, AlertCircle, Calendar, Building2, User, ExternalLink } from "lucide-react";
 import axios from "axios";
+import { SkeletonLoaderPage, SkeletonCard } from "@/components/ui/SkeletonLoader";
 
 interface NewsItem {
   title?: string;
@@ -35,8 +36,6 @@ export default function PoliticsNewsWidget() {
         const response = await axios.get<NewsApiResponse>(
           `${process.env.NEXT_PUBLIC_BASE_URL}/api/news/`
         );
-
-        // FIXED: your DRF API returns { count, results }
         setNews(response.data.results || []);
       } catch (err) {
         console.error("Error fetching news:", err);
@@ -75,19 +74,24 @@ export default function PoliticsNewsWidget() {
     }
   };
 
-  // Loading
+  // ============================================
+  // LOADING STATE
+  // ============================================
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-black">
-        <div className="text-center">
-          <Loader className="w-12 h-12 animate-spin text-pink-600 mx-auto mb-4" />
-          <p className="text-gray-400">Loading political news...</p>
-        </div>
-      </div>
+      <SkeletonLoaderPage
+        itemCount={12}
+        showSearch={false}
+        title="Political"
+        subtitle="Latest updates and stories from Nepal's political landscape"
+        showFilters={true}
+      />
     );
   }
 
-  // Error
+  // ============================================
+  // ERROR STATE
+  // ============================================
   if (error) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-black">
@@ -107,6 +111,9 @@ export default function PoliticsNewsWidget() {
     return true;
   });
 
+  // ============================================
+  // MAIN UI
+  // ============================================
   return (
     <main className="bg-black text-white min-h-screen">
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-8 lg:py-10">

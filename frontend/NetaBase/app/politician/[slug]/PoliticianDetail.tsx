@@ -16,7 +16,7 @@ import PoliticianInfo from "@/components/PoliticianInfo";
 import RatingsList from "@/components/rating/RatingsList";
 import ReviewForm from "@/components/rating/ReviewForm";
 import ErrorState from "@/components/ui/ErrorState";
-import LoadingState from "@/components/ui/LoadingState";
+import PoliticianDetailLoadingSkeleton from "@/components/ui/PoliticianDetailLoadingState";
 import { useAuthStore } from "@/hooks/useAuthStore";
 
 // Type definitions
@@ -158,7 +158,7 @@ export default function PoliticianDetail(): JSX.Element {
     return status.charAt(0).toUpperCase() + status.slice(1).replace("_", " ");
   };
 
-  if (loading) return <LoadingState />;
+  if (loading) return <PoliticianDetailLoadingSkeleton />;
   if (error) return <ErrorState error={error} onBack={() => router.back()} />;
   if (!politician) {
     return (
