@@ -20,9 +20,9 @@ export default function PoliticianInfo({ politician }: PoliticianInfoProps) {
     return (
       <motion.div
         whileHover={{ scale: 1.05 }}
-        className="flex items-center gap-2 text-yellow-400 bg-yellow-400/10 backdrop-blur-md w-fit px-4 py-2 rounded-2xl font-bold shadow-lg"
+        className="flex items-center gap-2 text-yellow-400 bg-yellow-400/10 backdrop-blur-md w-fit px-3 sm:px-4 py-2 rounded-2xl font-bold shadow-lg text-sm sm:text-base"
       >
-        <Star className="fill-yellow-400" size={18} />
+        <Star className="fill-yellow-400" size={16} />
         <span>{rating.toFixed(1)}</span>
       </motion.div>
     );
@@ -33,31 +33,31 @@ export default function PoliticianInfo({ politician }: PoliticianInfoProps) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-3xl p-8 shadow-2xl"
+      className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 shadow-2xl"
       style={{ boxShadow: "0 8px 32px rgba(0, 0, 0, 0.37)" }}
     >
-      <div className="flex flex-col md:flex-row gap-8 items-start">
+      <div className="flex flex-col gap-4 sm:gap-6 md:gap-8 items-start">
         {politician.photo && (
           <motion.div
             whileHover={{ scale: 1.05 }}
             transition={{ type: "spring", stiffness: 300 }}
-            className="relative"
+            className="relative mx-auto sm:mx-0"
           >
             <img
               src={politician.photo}
               alt={politician.name}
-              className="w-48 h-48 object-cover rounded-3xl shadow-2xl border-4 border-white/20"
+              className="w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48 object-cover rounded-2xl sm:rounded-3xl shadow-2xl border-4 border-white/20"
             />
-            <div className="absolute inset-0 rounded-3xl bg-linear-to-t from-black/50 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300" />
+            <div className="absolute inset-0 rounded-2xl sm:rounded-3xl bg-gradient-to-t from-black/50 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300" />
           </motion.div>
         )}
-        <div className="flex-1 space-y-4">
+        <div className="flex-1 space-y-3 sm:space-y-4 w-full">
           <div>
-            <h1 className="text-5xl font-bold text-white tracking-tight">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white tracking-tight leading-tight">
               {politician.name}
             </h1>
             {politician.party_name && (
-              <p className="text-xl font-medium text-blue-400 mt-1">
+              <p className="text-base sm:text-lg md:text-xl font-medium text-blue-400 mt-1">
                 {politician.party_name}
               </p>
             )}
@@ -72,10 +72,10 @@ export default function PoliticianInfo({ politician }: PoliticianInfoProps) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3 }}
-          className="mt-8"
+          className="mt-6 sm:mt-8"
         >
-          <h2 className="text-xl font-bold text-white mb-3">Biography</h2>
-          <p className="text-gray-300 leading-relaxed text-lg">
+          <h2 className="text-lg sm:text-xl font-bold text-white mb-2 sm:mb-3">Biography</h2>
+          <p className="text-gray-300 leading-relaxed text-sm sm:text-base md:text-lg">
             {politician.biography}
           </p>
         </motion.div>
@@ -86,12 +86,12 @@ export default function PoliticianInfo({ politician }: PoliticianInfoProps) {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
-          className="mt-6 backdrop-blur-md bg-linear-to-r from-blue-900/20 to-purple-900/20 border border-white/10 rounded-2xl p-5"
+          className="mt-4 sm:mt-6 backdrop-blur-md bg-gradient-to-r from-blue-900/20 to-purple-900/20 border border-white/10 rounded-xl sm:rounded-2xl p-4 sm:p-5"
         >
-          <h3 className="text-lg font-semibold text-gray-200 mb-2">
+          <h3 className="text-base sm:text-lg font-semibold text-gray-200 mb-2">
             Previous Party History
           </h3>
-          <p className="text-gray-300">{politician.previous_party_history}</p>
+          <p className="text-gray-300 text-sm sm:text-base">{politician.previous_party_history}</p>
         </motion.div>
       )}
 
@@ -99,37 +99,37 @@ export default function PoliticianInfo({ politician }: PoliticianInfoProps) {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.5 }}
-        className="mt-8"
+        className="mt-6 sm:mt-8"
       >
-        <h3 className="text-xl font-bold text-white mb-4">Basic Information</h3>
+        <h3 className="text-lg sm:text-xl font-bold text-white mb-3 sm:mb-4">Basic Information</h3>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
           {politician.age && (
-            <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-2xl p-4 flex items-center gap-3">
-              <User className="text-blue-400" size={20} />
-              <div>
-                <p className="text-sm text-gray-400">Age</p>
-                <p className="text-xl font-bold text-white">{politician.age}</p>
+            <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl sm:rounded-2xl p-3 sm:p-4 flex items-center gap-3">
+              <User className="text-blue-400 shrink-0" size={18} />
+              <div className="min-w-0">
+                <p className="text-xs sm:text-sm text-gray-400">Age</p>
+                <p className="text-base sm:text-xl font-bold text-white">{politician.age}</p>
               </div>
             </div>
           )}
 
           {politician.location && (
-            <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-2xl p-4 flex items-center gap-3">
-              <MapPin className="text-blue-400" size={20} />
-              <div>
-                <p className="text-sm text-gray-400">Location</p>
-                <p className="text-xl font-bold text-white">{politician.location}</p>
+            <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl sm:rounded-2xl p-3 sm:p-4 flex items-center gap-3">
+              <MapPin className="text-blue-400 shrink-0" size={18} />
+              <div className="min-w-0">
+                <p className="text-xs sm:text-sm text-gray-400">Location</p>
+                <p className="text-base sm:text-xl font-bold text-white truncate">{politician.location}</p>
               </div>
             </div>
           )}
 
           {politician.party_position && (
-            <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-2xl p-4 flex items-center gap-3 md:col-span-2">
-              <Briefcase className="text-blue-400" size={20} />
-              <div>
-                <p className="text-sm text-gray-400">Party Position</p>
-                <p className="text-xl font-bold text-white">
+            <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl sm:rounded-2xl p-3 sm:p-4 flex items-center gap-3 md:col-span-2">
+              <Briefcase className="text-blue-400 shrink-0" size={18} />
+              <div className="min-w-0">
+                <p className="text-xs sm:text-sm text-gray-400">Party Position</p>
+                <p className="text-base sm:text-xl font-bold text-white">
                   {politician.party_position}
                 </p>
               </div>
@@ -137,18 +137,18 @@ export default function PoliticianInfo({ politician }: PoliticianInfoProps) {
           )}
 
           {politician.education && (
-            <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-2xl p-5 md:col-span-2">
+            <div className="backdrop-blur-md bg-white/5 border border-white/10 rounded-xl sm:rounded-2xl p-4 sm:p-5 md:col-span-2">
               <div className="flex items-center gap-3 mb-3">
-                <GraduationCap className="text-blue-400" size={20} />
-                <p className="text-sm text-gray-400">Education</p>
+                <GraduationCap className="text-blue-400 shrink-0" size={18} />
+                <p className="text-xs sm:text-sm text-gray-400">Education</p>
               </div>
-              <ul className="space-y-2 ml-8 list-disc text-white marker:text-blue-400">
+              <ul className="space-y-1 sm:space-y-2 ml-6 sm:ml-8 list-disc text-white marker:text-blue-400">
                 {politician.education
                   .split(/\n/)
                   .map((line) => line.trim())
                   .filter(Boolean)
                   .map((edu, i) => (
-                    <li key={i} className="text-base leading-relaxed">
+                    <li key={i} className="text-sm sm:text-base leading-relaxed">
                       {edu}
                     </li>
                   ))}
@@ -163,16 +163,16 @@ export default function PoliticianInfo({ politician }: PoliticianInfoProps) {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6 }}
-          className="mt-8 p-6 backdrop-blur-md bg-red-900/20 border border-red-500/30 rounded-2xl"
+          className="mt-6 sm:mt-8 p-4 sm:p-6 backdrop-blur-md bg-red-900/20 border border-red-500/30 rounded-xl sm:rounded-2xl"
         >
-          <h3 className="text-xl font-bold text-red-400 mb-4 flex items-center gap-2">
-            <AlertTriangle size={20} /> Concerns
+          <h3 className="text-base sm:text-xl font-bold text-red-400 mb-3 sm:mb-4 flex items-center gap-2">
+            <AlertTriangle size={18} className="sm:w-5 sm:h-5" /> Concerns
           </h3>
 
           {politician.criminal_record && (
-            <div className="mb-3">
-              <p className="font-semibold text-red-300">Criminal Record</p>
-              <ul className="space-y-1 mt-1 ml-6 list-disc text-gray-300 marker:text-red-400">
+            <div className="mb-3 sm:mb-4">
+              <p className="font-semibold text-red-300 text-sm sm:text-base">Criminal Record</p>
+              <ul className="space-y-1 mt-1 ml-4 sm:ml-6 list-disc text-gray-300 marker:text-red-400 text-xs sm:text-sm">
                 {politician.criminal_record
                   .split(/\n/)
                   .map((line) => line.trim())
@@ -186,8 +186,8 @@ export default function PoliticianInfo({ politician }: PoliticianInfoProps) {
 
           {politician.criticism && (
             <div>
-              <p className="font-semibold text-yellow-300">Public Criticism</p>
-              <ul className="space-y-1 mt-1 ml-6 list-disc text-gray-300 marker:text-yellow-400">
+              <p className="font-semibold text-yellow-300 text-sm sm:text-base">Public Criticism</p>
+              <ul className="space-y-1 mt-1 ml-4 sm:ml-6 list-disc text-gray-300 marker:text-yellow-400 text-xs sm:text-sm">
                 {politician.criticism
                   .split(/\n/)
                   .map((line) => line.trim())
@@ -206,17 +206,17 @@ export default function PoliticianInfo({ politician }: PoliticianInfoProps) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.7 }}
-          className="mt-6"
+          className="mt-4 sm:mt-6"
         >
-          <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full ${
+          <div className={`inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-medium ${
             politician.is_active 
               ? 'bg-green-500/20 text-green-400 border border-green-500/30' 
               : 'bg-gray-500/20 text-gray-400 border border-gray-500/30'
           }`}>
-            <div className={`w-2 h-2 rounded-full ${
+            <div className={`w-2 h-2 rounded-full shrink-0 ${
               politician.is_active ? 'bg-green-400' : 'bg-gray-400'
             }`} />
-            <span className="text-sm font-medium">
+            <span>
               {politician.is_active ? 'Currently Active' : 'Inactive'}
             </span>
           </div>
