@@ -3,6 +3,8 @@ import "@/app/globals.css";
 import { Providers } from "./providers";
 
 export const metadata: Metadata = {
+  applicationName: "NetaBase",
+  manifest: "/manifest.json",
   metadataBase: new URL('https://netabase.vercel.app'), 
   title: {
     default: "NetaBase - Database of Nepali Politicians | Biography, Records & Ratings",
