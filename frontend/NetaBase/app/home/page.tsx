@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import Home from "@/app/home/Home";
 import { Metadata } from "next";
 
@@ -7,5 +8,9 @@ export const metadata: Metadata = {
 };
 
 export default function Page() {
-  return <Home />;
+  return (
+    <Suspense fallback={<div className="text-white p-10">Loading...</div>}>
+      <Home />
+    </Suspense>
+  );
 }
