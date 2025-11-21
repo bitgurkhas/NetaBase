@@ -25,20 +25,12 @@ class PartySerializer(serializers.ModelSerializer):
 
 class PoliticianSerializer(serializers.ModelSerializer):
     party_name = serializers.CharField(source='party.name', read_only=True)
-    average_rating = serializers.SerializerMethodField()
-    rated_by = serializers.SerializerMethodField()
+    average_rating = serializers.FloatField(source='average_rating_annotated', read_only=True)
+    rated_by = serializers.IntegerField(source='total_ratings_annotated', read_only=True)
     class Meta:
         model = Politician
         fields = ["slug", "name", "photo", "age", "party_name", "average_rating", "rated_by", "views"]
 
-    def get_average_rating(self, obj):
-        avg = Rating.objects.filter(politician=obj).aggregate(avg=Avg('score'))['avg']
-        return round(avg, 2) if avg is not None else 0
-
-    def get_rated_by(self, obj):
-        count = Rating.objects.filter(politician=obj).count()
-        return count
-        
         
 class RatingSerializer(serializers.ModelSerializer):
     user_id = serializers.ReadOnlyField(source='user.id')

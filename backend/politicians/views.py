@@ -13,7 +13,7 @@ from django.views.decorators.cache import cache_page
 from django.utils.decorators import method_decorator
 from django.core.cache import cache
 from django.conf import settings 
-
+from django.db.models import Avg, Count
 class StandardResultsSetPagination(PageNumberPagination):
     page_size = 10
     page_size_query_param = 'page_size'
@@ -55,9 +55,9 @@ class PartyPoliticiansView(generics.ListAPIView):
     pagination_class = StandardResultsSetPagination
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     
-    search_fields = ['name', 'biography', 'education', 'location', 'party_position']
-    ordering_fields = ['name', 'age', 'created_at', 'views']
-    ordering = ['-views']
+    search_fields = ['name']
+    ordering_fields = ['name']
+    ordering = ['-name']
 
     def get_queryset(self):
         party_slug = self.kwargs['slug']
@@ -65,22 +65,20 @@ class PartyPoliticiansView(generics.ListAPIView):
 
 
 class PoliticianListView(generics.ListAPIView):
-    queryset = Politician.objects.all()
     serializer_class = PoliticianSerializer
     permission_classes = [AllowAny]
     pagination_class = StandardResultsSetPagination
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    
-    # Filter by exact fields
-    filterset_fields = ['party', 'party__slug', 'is_active', 'location']
-    
-    # Search across these fields
-    search_fields = ['name', 'biography', 'education', 'party__name', 'location', 'party_position']
-    
-    # Allow ordering by these fields
-    ordering_fields = ['name', 'age', 'created_at', 'views']
-    ordering = ['-views']  # Default ordering by most viewed
 
+    queryset = Politician.objects.all().annotate(
+        average_rating_annotated=Avg('ratings__score'),
+        total_ratings_annotated=Count('ratings'),
+    )
+
+    filterset_fields = ['party', 'is_active', 'location']
+    search_fields = ['name', 'party__name', 'location']
+    ordering_fields = ['name', 'age', 'views', 'average_rating_annotated', 'total_ratings_annotated']
+    ordering = ['-name']
 
     @method_decorator(cache_page(60 * 5))
     def dispatch(self, *args, **kwargs):

@@ -122,19 +122,6 @@ class Politician(models.Model):
     def __str__(self):
         return self.name
 
-    @property
-    def average_rating(self):
-        """Calculate average rating score"""
-        from django.db.models import Avg
-        result = self.ratings.aggregate(Avg('score')) # type: ignore
-        return round(result['score__avg'], 2) if result['score__avg'] else 0
-
-    @property
-    def total_ratings(self):
-        """Get total number of ratings"""
-        return self.ratings.count() # type: ignore
-
-
 class Initiatives(models.Model):
     politician = models.ForeignKey(
         Politician,

@@ -81,8 +81,8 @@ export default function Home(): JSX.Element {
         const orderingMap: Record<SortOption, string> = {
           name: "name",
           name_desc: "-name",
-          rating_high: "-average_rating",
-          rating_low: "average_rating",
+          rating_high: "-average_rating_annotated",
+          rating_low: "average_rating_annotated",
           age_old: "-age",
           age_young: "age",
         };
