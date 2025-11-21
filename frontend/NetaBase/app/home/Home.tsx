@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, ChangeEvent, JSX } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import {
   Users,
@@ -14,46 +14,68 @@ import {
 } from "lucide-react";
 import axios, { AxiosError } from "axios";
 import {
-  Politician,
   SortOption,
-  PaginationState,
   PoliticiansApiResponse,
   StarRatingProps,
 } from "@/types";
 import { SkeletonCard } from "@/components/ui/SkeletonLoader";
-
+import { usePoliticiansStore } from "@/store/usePoliticiansStore";
 
 export default function Home(): JSX.Element {
   const router = useRouter();
-  const [politicians, setPoliticians] = useState<Politician[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-  const [searchTerm, setSearchTerm] = useState<string>("");
-  const [searchInput, setSearchInput] = useState<string>("");
-  const [sortBy, setSortBy] = useState<SortOption>("name");
-  const [currentPage, setCurrentPage] = useState<number>(1);
-  const [pagination, setPagination] = useState<PaginationState>({
-    count: 0,
-    next: null,
-    previous: null,
-  });
-
-  const baseUrl: string = process.env.NEXT_PUBLIC_BASE_URL ?? "";
+  const searchParams = useSearchParams();
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const baseUrl: string = process.env.NEXT_PUBLIC_BASE_URL ?? "";
   const pageSize: number = 12;
 
-  // Fetch politicians with axios
+  // Get params from URL
+  const urlPage = parseInt(searchParams.get("page") || "1");
+  const urlSearch = searchParams.get("search") || "";
+  const urlSort = (searchParams.get("sort") || "name") as SortOption;
+
+  // Local state for input
+  const [searchInput, setSearchInput] = useState<string>(urlSearch);
+
+  // Zustand store for data and cache
+  const {
+    politicians,
+    pagination,
+    loading,
+    error,
+    setPoliticians,
+    setPagination,
+    setLoading,
+    setError,
+    getCachedData,
+    setCachedData,
+    clearCache,
+    reset,
+  } = usePoliticiansStore();
+
+  // Update URL with new params
+  const updateURL = (page: number, search: string, sort: SortOption) => {
+    const params = new URLSearchParams();
+    
+    if (page > 1) params.set("page", page.toString());
+    if (search) params.set("search", search);
+    if (sort !== "name") params.set("sort", sort);
+    
+    const queryString = params.toString();
+    const newURL = queryString ? `/?${queryString}` : "/";
+    
+    router.push(newURL, { scroll: false });
+  };
+
+  // Fetch politicians with caching
   useEffect(() => {
     const fetchPoliticians = async (): Promise<void> => {
       try {
-        setLoading(true);
-
         const params = new URLSearchParams();
         params.append("page_size", pageSize.toString());
-        params.append("page", currentPage.toString());
+        params.append("page", urlPage.toString());
 
-        if (searchTerm.trim()) {
-          params.append("search", searchTerm.trim());
+        if (urlSearch.trim()) {
+          params.append("search", urlSearch.trim());
         }
 
         const orderingMap: Record<SortOption, string> = {
@@ -64,19 +86,38 @@ export default function Home(): JSX.Element {
           age_old: "-age",
           age_young: "age",
         };
-        params.append("ordering", orderingMap[sortBy] || "name");
+        params.append("ordering", orderingMap[urlSort] || "name");
+
+        const cacheKey = params.toString();
+        const cached = getCachedData(cacheKey);
+
+        // Check if we have valid cached data
+        if (cached) {
+          setPoliticians(cached.data);
+          setPagination(cached.pagination);
+          setError(null);
+          setLoading(false);
+          return;
+        }
+
+        setLoading(true);
 
         const url: string = `${baseUrl}/api/politicians/?${params.toString()}`;
         const response = await axios.get<PoliticiansApiResponse>(url);
         const data = response.data;
 
-        setPoliticians(data.results || []);
-        setPagination({
+        const results = data.results || [];
+        const paginationData = {
           count: data.count || 0,
           next: data.next || null,
           previous: data.previous || null,
-        });
+        };
 
+        // Cache the response
+        setCachedData(cacheKey, results, paginationData);
+
+        setPoliticians(results);
+        setPagination(paginationData);
         setError(null);
       } catch (err) {
         console.error("Error fetching politicians:", err);
@@ -92,14 +133,26 @@ export default function Home(): JSX.Element {
     };
 
     fetchPoliticians();
-  }, [baseUrl, searchTerm, sortBy, currentPage]);
+  }, [
+    baseUrl,
+    urlSearch,
+    urlSort,
+    urlPage,
+    getCachedData,
+    setCachedData,
+    setPoliticians,
+    setPagination,
+    setError,
+    setLoading,
+  ]);
 
+  // Sync search input with URL
   useEffect(() => {
-    setCurrentPage(1);
-  }, [searchTerm, sortBy]);
+    setSearchInput(urlSearch);
+  }, [urlSearch]);
 
   const handleSearchSubmit = (): void => {
-    setSearchTerm(searchInput);
+    updateURL(1, searchInput, urlSort);
   };
 
   const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>): void => {
@@ -121,19 +174,24 @@ export default function Home(): JSX.Element {
 
   const handleClearSearch = (): void => {
     setSearchInput("");
-    setSearchTerm("");
+    updateURL(1, "", urlSort);
+    clearCache();
+  };
+
+  const handleSortChange = (newSort: SortOption): void => {
+    updateURL(1, urlSearch, newSort);
   };
 
   const handlePreviousPage = (): void => {
-    if (pagination.previous) {
-      setCurrentPage((prev) => prev - 1);
+    if (pagination.previous && urlPage > 1) {
+      updateURL(urlPage - 1, urlSearch, urlSort);
       window.scrollTo(0, 0);
     }
   };
 
   const handleNextPage = (): void => {
     if (pagination.next) {
-      setCurrentPage((prev) => prev + 1);
+      updateURL(urlPage + 1, urlSearch, urlSort);
       window.scrollTo(0, 0);
     }
   };
@@ -215,68 +273,58 @@ export default function Home(): JSX.Element {
 
         {/* Search + Sort */}
         <div className="mb-12 space-y-4">
-          {loading ? (
-            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-              <div className="flex-1 flex gap-2">
-                <div className="flex-1 h-12 sm:h-14 bg-gray-900 border border-gray-800 rounded-lg animate-pulse"></div>
-                <div className="w-12 sm:w-14 h-12 sm:h-14 bg-gray-900 border border-gray-800 rounded-lg animate-pulse"></div>
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+            <div className="flex-1 flex gap-2">
+              <div className="flex-1 relative">
+                <Search
+                  className="absolute left-4 top-4 text-gray-600"
+                  size={20}
+                />
+                <input
+                  ref={searchInputRef}
+                  type="text"
+                  placeholder="Search by name or party..."
+                  value={searchInput}
+                  onChange={handleSearchChange}
+                  onKeyDown={handleSearchKeyDown}
+                  className="w-full bg-gray-950 text-white pl-12 pr-12 py-3 sm:py-4 rounded-lg border border-gray-800 focus:outline-none focus:border-pink-600 focus:ring-1 focus:ring-pink-600 transition text-sm sm:text-base placeholder-gray-600"
+                />
+                {searchInput && (
+                  <button
+                    onClick={handleClearSearch}
+                    className="absolute cursor-pointer right-4 top-4 text-gray-600 hover:text-gray-400 transition"
+                    aria-label="Clear search"
+                  >
+                    <X size={25} />
+                  </button>
+                )}
               </div>
-              <div className="w-full sm:w-48 h-12 sm:h-14 bg-gray-900 border border-gray-800 rounded-lg animate-pulse"></div>
-            </div>
-          ) : (
-            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-              <div className="flex-1 flex gap-2">
-                <div className="flex-1 relative">
-                  <Search
-                    className="absolute left-4 top-4 text-gray-600"
-                    size={20}
-                  />
-                  <input
-                    ref={searchInputRef}
-                    type="text"
-                    placeholder="Search by name or party..."
-                    value={searchInput}
-                    onChange={handleSearchChange}
-                    onKeyDown={handleSearchKeyDown}
-                    className="w-full bg-gray-950 text-white pl-12 pr-12 py-3 sm:py-4 rounded-lg border border-gray-800 focus:outline-none focus:border-pink-600 focus:ring-1 focus:ring-pink-600 transition text-sm sm:text-base placeholder-gray-600"
-                  />
-                  {searchInput && (
-                    <button
-                      onClick={handleClearSearch}
-                      className="absolute cursor-pointer right-4 top-4 text-gray-600 hover:text-gray-400 transition"
-                      aria-label="Clear search"
-                    >
-                      <X size={25} />
-                    </button>
-                  )}
-                </div>
-                <button
-                  onClick={handleSearchSubmit}
-                  className="px-4 sm:px-6 py-3 sm:py-4 bg-gray-950 border border-gray-800 hover:border-gray-700 hover:bg-gray-900 text-white rounded-lg transition-all duration-300 flex items-center justify-center"
-                  aria-label="Search"
-                >
-                  <Search size={20} />
-                </button>
-              </div>
-
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value as SortOption)}
-                className="bg-gray-950 text-white px-4 py-3 sm:py-4 rounded-lg border border-gray-800 focus:outline-none focus:border-pink-600 focus:ring-1 focus:ring-pink-600 transition cursor-pointer text-sm sm:text-base"
+              <button
+                onClick={handleSearchSubmit}
+                className="px-4 sm:px-6 py-3 sm:py-4 bg-gray-950 border border-gray-800 hover:border-gray-700 hover:bg-gray-900 text-white rounded-lg transition-all duration-300 flex items-center justify-center"
+                aria-label="Search"
               >
-                <option value="name">Name (A-Z)</option>
-                <option value="name_desc">Name (Z-A)</option>
-                <option value="rating_high">Rating (High to Low)</option>
-                <option value="rating_low">Rating (Low to High)</option>
-                <option value="age_old">Age (Oldest First)</option>
-                <option value="age_young">Age (Youngest First)</option>
-              </select>
+                <Search size={20} />
+              </button>
             </div>
-          )}
+
+            <select
+              value={urlSort}
+              onChange={(e) => handleSortChange(e.target.value as SortOption)}
+              className="bg-gray-950 text-white px-4 py-3 sm:py-4 rounded-lg border border-gray-800 focus:outline-none focus:border-pink-600 focus:ring-1 focus:ring-pink-600 transition cursor-pointer text-sm sm:text-base"
+            >
+              <option value="name">Name (A-Z)</option>
+              <option value="name_desc">Name (Z-A)</option>
+              <option value="rating_high">Rating (High to Low)</option>
+              <option value="rating_low">Rating (Low to High)</option>
+              <option value="age_old">Age (Oldest First)</option>
+              <option value="age_young">Age (Youngest First)</option>
+            </select>
+          </div>
         </div>
 
         {/* Grid - Show skeletons when loading, otherwise show politicians */}
-        {loading ? (
+        {loading && !politicians.length ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {Array.from({ length: 12 }).map((_, index) => (
               <SkeletonCard key={index} />
@@ -369,7 +417,7 @@ export default function Home(): JSX.Element {
 
                 <div className="flex items-center gap-2 px-4 py-3 bg-gray-950 border border-gray-800 rounded-lg text-gray-400 text-sm sm:text-base">
                   <span className="font-semibold text-white">
-                    {currentPage}
+                    {urlPage}
                   </span>
                   <span>/</span>
                   <span>{totalPages}</span>
