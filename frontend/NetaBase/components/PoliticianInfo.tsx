@@ -48,7 +48,7 @@ export default function PoliticianInfo({ politician }: PoliticianInfoProps) {
               alt={politician.name}
               className="w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48 object-cover rounded-2xl sm:rounded-3xl shadow-2xl border-4 border-white/20"
             />
-            <div className="absolute inset-0 rounded-2xl sm:rounded-3xl bg-gradient-to-t from-black/50 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300" />
+            <div className="absolute inset-0 rounded-2xl sm:rounded-3xl bg-linear-to-t from-black/50 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300" />
           </motion.div>
         )}
         <div className="flex-1 space-y-3 sm:space-y-4 w-full">
@@ -86,7 +86,7 @@ export default function PoliticianInfo({ politician }: PoliticianInfoProps) {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
-          className="mt-4 sm:mt-6 backdrop-blur-md bg-gradient-to-r from-blue-900/20 to-purple-900/20 border border-white/10 rounded-xl sm:rounded-2xl p-4 sm:p-5"
+          className="mt-4 sm:mt-6 backdrop-blur-md bg-linear-to-r from-blue-900/20 to-purple-900/20 border border-white/10 rounded-xl sm:rounded-2xl p-4 sm:p-5"
         >
           <h3 className="text-base sm:text-lg font-semibold text-gray-200 mb-2">
             Previous Party History

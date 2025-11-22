@@ -35,6 +35,7 @@ export default function Home(): JSX.Element {
 
   // Local state for input
   const [searchInput, setSearchInput] = useState<string>(urlSearch);
+  const [isTransitioning, setIsTransitioning] = useState<boolean>(false);
 
   // Zustand store for data and cache
   const {
@@ -97,10 +98,12 @@ export default function Home(): JSX.Element {
           setPagination(cached.pagination);
           setError(null);
           setLoading(false);
+          setIsTransitioning(false);
           return;
         }
 
         setLoading(true);
+        setIsTransitioning(true);
 
         const url: string = `${baseUrl}/api/politicians/?${params.toString()}`;
         const response = await axios.get<PoliticiansApiResponse>(url);
@@ -129,6 +132,7 @@ export default function Home(): JSX.Element {
         setPoliticians([]);
       } finally {
         setLoading(false);
+        setIsTransitioning(false);
       }
     };
 
@@ -324,7 +328,7 @@ export default function Home(): JSX.Element {
         </div>
 
         {/* Grid - Show skeletons when loading, otherwise show politicians */}
-        {loading && !politicians.length ? (
+        {isTransitioning ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {Array.from({ length: 12 }).map((_, index) => (
               <SkeletonCard key={index} />

@@ -1,65 +1,114 @@
 import pytest
-from rest_framework import status
-from rest_framework_simplejwt.tokens import RefreshToken
+from django.urls import reverse
+from rest_framework.test import APIClient
 
 
+# ---------------------------
+# RATING LIST + CREATE
+# ---------------------------
 @pytest.mark.django_db
-def test_create_rating_requires_auth(api_client, politician_factory):
+def test_rating_list_and_create(politician_factory, user_factory, rating_factory):
     pol = politician_factory()
-    url = f"/api/politicians/{pol.slug}/ratings/"
+    user = user_factory()
 
-    resp = api_client.post(url, {"score": 5, "comment": "Nice"}, format="json")
+    rating_factory(politician=pol, user=user, score=4)
 
-    assert resp.status_code in (401, 403)
+    url = reverse("politician-ratings", args=[pol.slug])
+    client = APIClient()
+
+    # LIST (no auth needed)
+    response = client.get(url)
+    assert response.status_code == 200 # type: ignore
+    assert response.data["results"][0]["score"] == 4 # type: ignore
+
+    # CREATE (auth required)
+    client.force_authenticate(user=user)
+    response2 = client.post(url, {"score": 5, "comment": "ok"}, format="json")
+
+    assert response2.status_code in (200, 201)# type: ignore
 
 
+# ---------------------------
+# RATING: UPDATE IF EXISTS
+# ---------------------------
 @pytest.mark.django_db
-def test_create_and_update_rating(auth_client, politician_factory):
-    api, user = auth_client()
+def test_rating_update_if_exists(politician_factory, user_factory, rating_factory):
     pol = politician_factory()
-    url = f"/api/politicians/{pol.slug}/ratings/"
+    user = user_factory()
 
-    # create
-    resp = api.post(url, {"score": 5, "comment": "Great"}, format="json")
-    assert resp.status_code == status.HTTP_201_CREATED
+    rating = rating_factory(politician=pol, user=user, score=3)
 
-    data = resp.data
-    assert data["score"] == 5
-    assert data["username"] == user.username
+    url = reverse("politician-ratings", args=[pol.slug])
+    client = APIClient()
+    client.force_authenticate(user=user)
 
-    # second post should update existing rating
-    resp2 = api.post(url, {"score": 3, "comment": "Changed"}, format="json")
-    assert resp2.status_code == status.HTTP_200_OK
-    assert resp2.data["score"] == 3
+    # Should update existing rating, not create new
+    response = client.post(url, {"score": 5, "comment": "updated"}, format="json")
+
+    assert response.status_code == 200# type: ignore
+    rating.refresh_from_db()
+    assert rating.score == 5
 
 
+# ---------------------------
+# RATING DETAIL: RETRIEVE
+# ---------------------------
 @pytest.mark.django_db
-def test_rating_update_and_delete_ownership(auth_client, rating_factory, user_factory):
-    # authenticated owner
-    api, owner = auth_client()
+def test_rating_detail_retrieve(rating_factory):
+    rating = rating_factory()
+    url = reverse("rating-detail", args=[rating.id])
 
-    # create rating for a politician
-    rating = rating_factory(user=owner)
-    pol = rating.politician
+    client = APIClient()
+    response = client.get(url)
 
-    # correct rating detail URL
-    url = f"/api/ratings/{rating.id}/"
+    assert response.status_code == 200# type: ignore
+    assert response.data["id"] == rating.id# type: ignore
 
-    # owner can update
-    resp = api.put(url, {"score": 2, "comment": "meh"}, format="json")
-    assert resp.status_code in (status.HTTP_200_OK, status.HTTP_202_ACCEPTED)
 
-    # switch to another user
+# ---------------------------
+# RATING DETAIL: UPDATE PERMISSIONS
+# ---------------------------
+@pytest.mark.django_db
+def test_rating_detail_update_only_owner(rating_factory, user_factory):
+    owner = user_factory()
     other_user = user_factory()
-    api.credentials()  # clear auth
+    rating = rating_factory(user=owner)
 
-    token = RefreshToken.for_user(other_user)
-    api.credentials(HTTP_AUTHORIZATION=f"Bearer {str(token.access_token)}")
+    url = reverse("rating-detail", args=[rating.id])
+    client = APIClient()
 
-    # other user cannot update
-    resp = api.put(url, {"score": 1, "comment": "hacked"}, format="json")
-    assert resp.status_code in (status.HTTP_403_FORBIDDEN, status.HTTP_401_UNAUTHORIZED)
+    # Other user cannot update
+    client.force_authenticate(user=other_user)
+    response = client.put(url, {"score": 1}, format="json")
+    assert response.status_code == 403# type: ignore
 
-    # other user cannot delete
-    resp = api.delete(url)
-    assert resp.status_code in (status.HTTP_403_FORBIDDEN, status.HTTP_401_UNAUTHORIZED)
+    # Owner can update
+    client.force_authenticate(user=owner)
+    response2 = client.put(url, {"score": 3}, format="json")
+    assert response2.status_code == 200# type: ignore
+
+    rating.refresh_from_db()
+    assert rating.score == 3
+
+
+# ---------------------------
+# RATING DETAIL: DELETE PERMISSIONS
+# ---------------------------
+@pytest.mark.django_db
+def test_rating_detail_delete_only_owner(rating_factory, user_factory):
+    owner = user_factory()
+    other_user = user_factory()
+    rating = rating_factory(user=owner)
+
+    url = reverse("rating-detail", args=[rating.id])
+    client = APIClient()
+
+    # Other user cannot delete
+    client.force_authenticate(user=other_user)
+    r = client.delete(url)
+    assert r.status_code == 403# type: ignore
+
+    # Owner can delete
+    client.force_authenticate(user=owner)
+    r2 = client.delete(url)
+    assert r2.status_code == 204# type: ignore

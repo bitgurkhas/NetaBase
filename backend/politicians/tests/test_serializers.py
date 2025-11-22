@@ -1,4 +1,6 @@
 import pytest
+from django.db.models import Avg, Count
+from politicians.models import Politician
 from politicians.serializers import (
     PartySerializer,
     PoliticianSerializer,
@@ -20,6 +22,7 @@ def test_party_serializer_politician_count(party_factory, politician_factory):
     assert ser.data["politician_count"] == 2 # type: ignore
 
 
+
 @pytest.mark.django_db
 def test_politician_serializer_avg_and_count(politician_factory, rating_factory):
     pol = politician_factory()
@@ -27,10 +30,18 @@ def test_politician_serializer_avg_and_count(politician_factory, rating_factory)
     rating_factory(politician=pol, score=5)
     rating_factory(politician=pol, score=3)
 
-    ser = PoliticianSerializer(instance=pol)
+    pol_annotated = (
+        Politician.objects.annotate(
+            average_rating_annotated=Avg("ratings__score"),
+            total_ratings_annotated=Count("ratings")
+        )
+        .get(id=pol.id)
+    )
 
-    assert ser.data["average_rating"] == 4.0  # type: ignore
-    assert ser.data["rated_by"] == 2  # type: ignore
+    ser = PoliticianSerializer(instance=pol_annotated)
+
+    assert ser.data["average_rating"] == 4.0 # type: ignore
+    assert ser.data["rated_by"] == 2 # type: ignore
 
 
 @pytest.mark.django_db
