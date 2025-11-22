@@ -8,25 +8,61 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('politicians', '0003_rename_previous_data_history_politician_previous_party_history_and_more'),
+        (
+            "politicians",
+            "0003_rename_previous_data_history_politician_previous_party_history_and_more",
+        ),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Rating',
+            name="Rating",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('score', models.IntegerField(choices=[(1, '1 - Poor'), (2, '2 - Fair'), (3, '3 - Good'), (4, '4 - Very Good'), (5, '5 - Excellent')])),
-                ('comment', models.TextField()),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('politician', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='ratings', to='politicians.politician')),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='politician_ratings', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "score",
+                    models.IntegerField(
+                        choices=[
+                            (1, "1 - Poor"),
+                            (2, "2 - Fair"),
+                            (3, "3 - Good"),
+                            (4, "4 - Very Good"),
+                            (5, "5 - Excellent"),
+                        ]
+                    ),
+                ),
+                ("comment", models.TextField()),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "politician",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="ratings",
+                        to="politicians.politician",
+                    ),
+                ),
+                (
+                    "user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="politician_ratings",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
             options={
-                'ordering': ['-created_at'],
-                'unique_together': {('politician', 'user')},
+                "ordering": ["-created_at"],
+                "unique_together": {("politician", "user")},
             },
         ),
     ]

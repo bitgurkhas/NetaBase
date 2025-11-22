@@ -1,11 +1,10 @@
-from django.contrib.auth import get_user_model
-from rest_framework import serializers
-from django.contrib.auth import authenticate
-from rest_framework_simplejwt.serializers import TokenRefreshSerializer
-from rest_framework_simplejwt.tokens import RefreshToken, AccessToken
-from rest_framework_simplejwt.exceptions import InvalidToken
+from django.contrib.auth import authenticate, get_user_model
 from django.core.validators import RegexValidator
 from django.utils.translation import gettext_lazy as _
+from rest_framework import serializers
+from rest_framework_simplejwt.exceptions import InvalidToken
+from rest_framework_simplejwt.serializers import TokenRefreshSerializer
+from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
 
 User = get_user_model()
 
@@ -16,8 +15,8 @@ User = get_user_model()
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'username']
-        read_only_fields = ['id', 'username']
+        fields = ["id", "username"]
+        read_only_fields = ["id", "username"]
 
 
 # -----------------------------
@@ -27,29 +26,29 @@ class UserRegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(
         write_only=True,
         min_length=8,
-        error_messages={
-            "min_length": "Password must be at least 8 characters long."
-        }
+        error_messages={"min_length": "Password must be at least 8 characters long."},
     )
     confirm_password = serializers.CharField(write_only=True)
 
     username = serializers.CharField(
         validators=[
             RegexValidator(
-                regex=r'^[a-zA-Z0-9_.-]+$',
-                message="Username can only contain letters, numbers, dots, hyphens and underscores."
+                regex=r"^[a-zA-Z0-9_.-]+$",
+                message="Username can only contain letters, numbers, dots, hyphens and underscores.",
             )
         ]
     )
 
     class Meta:
         model = User
-        fields = ['username', 'password', 'confirm_password']
+        fields = ["username", "password", "confirm_password"]
 
     def validate_username(self, value):
         value = value.strip()
         if len(value) < 3:
-            raise serializers.ValidationError("Username must be at least 3 characters long.")
+            raise serializers.ValidationError(
+                "Username must be at least 3 characters long."
+            )
 
         if User.objects.filter(username__iexact=value).exists():
             raise serializers.ValidationError("Username is already taken.")
@@ -66,15 +65,17 @@ class UserRegisterSerializer(serializers.ModelSerializer):
         return value
 
     def validate(self, data):
-        if data['password'] != data['confirm_password']:
-            raise serializers.ValidationError({"confirm_password": "Passwords do not match."})
+        if data["password"] != data["confirm_password"]:
+            raise serializers.ValidationError(
+                {"confirm_password": "Passwords do not match."}
+            )
         return data
 
     def create(self, validated_data):
-        validated_data.pop('confirm_password')
-        password = validated_data.pop('password')
+        validated_data.pop("confirm_password")
+        password = validated_data.pop("password")
 
-        username = validated_data['username'].strip()
+        username = validated_data["username"].strip()
 
         user = User(username=username)
         user.set_password(password)

@@ -1,17 +1,15 @@
-from django.test import override_settings
 import pytest
-from rest_framework.test import APIClient
 from django.contrib.auth.models import User
+from django.test import override_settings
+from rest_framework.test import APIClient
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from politicians.models import Party, Politician, Rating
 
 
-
 @pytest.fixture
 def api_client():
     return APIClient()
-
 
 
 @pytest.fixture(autouse=True)
@@ -25,8 +23,8 @@ def disable_redis_cache():
         }
     ):
         yield
-        
-        
+
+
 @pytest.fixture
 def user_factory(db):
     def make_user(**kwargs):
@@ -53,9 +51,7 @@ def auth_client(api_client, user_factory):
             user = user_factory()
 
         refresh = RefreshToken.for_user(user)
-        api_client.credentials(
-            HTTP_AUTHORIZATION=f"Bearer {str(refresh.access_token)}"
-        )
+        api_client.credentials(HTTP_AUTHORIZATION=f"Bearer {str(refresh.access_token)}")
         return api_client, user
 
     return _get

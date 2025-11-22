@@ -2,40 +2,81 @@
 
 import django.core.validators
 import django.db.models.deletion
-import politicians.models
 from django.db import migrations, models
+
+import politicians.models
 
 
 class Migration(migrations.Migration):
 
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='Party',
+            name="Party",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=255, unique=True)),
-                ('short_name', models.CharField(max_length=50)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=255, unique=True)),
+                ("short_name", models.CharField(max_length=50)),
             ],
         ),
         migrations.CreateModel(
-            name='Politician',
+            name="Politician",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=255)),
-                ('photo', models.ImageField(blank=True, null=True, upload_to='politicians/', validators=[politicians.models.validate_image])),
-                ('age', models.PositiveIntegerField(validators=[django.core.validators.MinValueValidator(18), django.core.validators.MaxValueValidator(100)])),
-                ('education', models.TextField()),
-                ('criminal_record', models.TextField(blank=True)),
-                ('party_position', models.CharField(blank=True, max_length=255, null=True)),
-                ('criticism', models.TextField(blank=True)),
-                ('biography', models.TextField()),
-                ('previous_data_history', models.TextField(blank=True)),
-                ('party', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='politicians.party')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=255)),
+                (
+                    "photo",
+                    models.ImageField(
+                        blank=True,
+                        null=True,
+                        upload_to="politicians/",
+                        validators=[politicians.models.validate_image],
+                    ),
+                ),
+                (
+                    "age",
+                    models.PositiveIntegerField(
+                        validators=[
+                            django.core.validators.MinValueValidator(18),
+                            django.core.validators.MaxValueValidator(100),
+                        ]
+                    ),
+                ),
+                ("education", models.TextField()),
+                ("criminal_record", models.TextField(blank=True)),
+                (
+                    "party_position",
+                    models.CharField(blank=True, max_length=255, null=True),
+                ),
+                ("criticism", models.TextField(blank=True)),
+                ("biography", models.TextField()),
+                ("previous_data_history", models.TextField(blank=True)),
+                (
+                    "party",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="politicians.party",
+                    ),
+                ),
             ],
         ),
     ]

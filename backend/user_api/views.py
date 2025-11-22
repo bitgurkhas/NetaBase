@@ -1,25 +1,24 @@
-from rest_framework.response import Response
-from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework_simplejwt.exceptions import TokenError
-from rest_framework.permissions import IsAuthenticated, AllowAny
-from rest_framework.decorators import api_view, permission_classes
-from django.views.decorators.csrf import csrf_exempt
-import string
 import random
-from google.oauth2 import id_token
-from google.auth.transport import requests as google_requests
-from django.contrib.auth.models import User
-from rest_framework import status
+import string
+
 from django.conf import settings
+from django.contrib.auth.models import User
+from django.views.decorators.csrf import csrf_exempt
+from google.auth.transport import requests as google_requests
+from google.oauth2 import id_token
+from rest_framework import status
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.response import Response
+from rest_framework_simplejwt.exceptions import TokenError
+from rest_framework_simplejwt.tokens import RefreshToken
 
 
 def generate_unique_username(base_username):
     """Ensures username uniqueness by appending random suffix when conflicts occur."""
     username = base_username
     while User.objects.filter(username=username).exists():
-        rand_str = ''.join(random.choices(
-            string.ascii_lowercase + string.digits, k=4
-        ))
+        rand_str = "".join(random.choices(string.ascii_lowercase + string.digits, k=4))
         username = f"{base_username}_{rand_str}"
     return username
 
@@ -32,15 +31,15 @@ def set_refresh_token_cookie(response, refresh_token):
         "samesite": settings.SESSION_COOKIE_SAMESITE,
         "path": "/",
     }
-    
+
     if settings.COOKIE_DOMAIN:
         cookie_kwargs["domain"] = settings.COOKIE_DOMAIN
-    
+
     response.set_cookie(
         key="refresh_token",
         value=str(refresh_token),
         max_age=14 * 24 * 60 * 60,
-        **cookie_kwargs
+        **cookie_kwargs,
     )
 
 
@@ -50,11 +49,10 @@ def set_refresh_token_cookie(response, refresh_token):
 def google_login(request):
     """Authenticates user via Google OAuth and issues JWT tokens."""
     token = request.data.get("credential")
-    
+
     if not token:
         return Response(
-            {"error": "No credential provided"}, 
-            status=status.HTTP_400_BAD_REQUEST
+            {"error": "No credential provided"}, status=status.HTTP_400_BAD_REQUEST
         )
 
     try:
@@ -67,8 +65,8 @@ def google_login(request):
         email = idinfo.get("email")
         if not email:
             return Response(
-                {"error": "Email not provided by Google"}, 
-                status=status.HTTP_400_BAD_REQUEST
+                {"error": "Email not provided by Google"},
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         first_name = idinfo.get("given_name", "")
@@ -81,8 +79,8 @@ def google_login(request):
             defaults={
                 "username": username,
                 "first_name": first_name,
-                "last_name": last_name
-            }
+                "last_name": last_name,
+            },
         )
 
         if not created:
@@ -93,30 +91,33 @@ def google_login(request):
         refresh = RefreshToken.for_user(user)
         access = refresh.access_token
 
-        response = Response({
-            "user": {
-                "id": user.id, # type: ignore
-                "username": user.username,
-                "email": user.email,
-                "first_name": user.first_name,
-                "last_name": user.last_name,
-                "full_name": f"{user.first_name} {user.last_name}".strip(),
+        response = Response(
+            {
+                "user": {
+                    "id": user.id,  # type: ignore
+                    "username": user.username,
+                    "email": user.email,
+                    "first_name": user.first_name,
+                    "last_name": user.last_name,
+                    "full_name": f"{user.first_name} {user.last_name}".strip(),
+                },
+                "access": str(access),
             },
-            "access": str(access)
-        }, status=status.HTTP_200_OK)
+            status=status.HTTP_200_OK,
+        )
 
         set_refresh_token_cookie(response, refresh)
         return response
 
     except ValueError as e:
         return Response(
-            {"error": "Invalid Google token", "detail": str(e)}, 
-            status=status.HTTP_400_BAD_REQUEST
+            {"error": "Invalid Google token", "detail": str(e)},
+            status=status.HTTP_400_BAD_REQUEST,
         )
     except Exception as e:
         return Response(
-            {"error": "Authentication failed", "detail": str(e)}, 
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            {"error": "Authentication failed", "detail": str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
 
@@ -125,18 +126,20 @@ def google_login(request):
 def me(request):
     """Returns authenticated user's profile information."""
     user = request.user
-    return Response({
-        "id": user.id,
-        "username": user.username,
-        "email": user.email,
-        "first_name": user.first_name,
-        "last_name": user.last_name,
-        "full_name": f"{user.first_name} {user.last_name}".strip(),
-    })
+    return Response(
+        {
+            "id": user.id,
+            "username": user.username,
+            "email": user.email,
+            "first_name": user.first_name,
+            "last_name": user.last_name,
+            "full_name": f"{user.first_name} {user.last_name}".strip(),
+        }
+    )
 
 
 @csrf_exempt
-@api_view(['POST'])
+@api_view(["POST"])
 @permission_classes([AllowAny])
 def refresh_token_view(request):
     """Issues new access token and rotates refresh token from httpOnly cookie."""
@@ -144,17 +147,14 @@ def refresh_token_view(request):
 
     if not refresh_token:
         return Response(
-            {"error": "No refresh token provided"}, 
-            status=status.HTTP_401_UNAUTHORIZED
+            {"error": "No refresh token provided"}, status=status.HTTP_401_UNAUTHORIZED
         )
 
     try:
         refresh = RefreshToken(refresh_token)
         access = refresh.access_token
 
-        response = Response({
-            "access": str(access)
-        }, status=status.HTTP_200_OK)
+        response = Response({"access": str(access)}, status=status.HTTP_200_OK)
 
         # Rotate refresh token when ROTATE_REFRESH_TOKENS is enabled
         set_refresh_token_cookie(response, refresh)
@@ -162,13 +162,13 @@ def refresh_token_view(request):
 
     except TokenError as e:
         return Response(
-            {"error": "Invalid or expired refresh token"}, 
-            status=status.HTTP_401_UNAUTHORIZED
+            {"error": "Invalid or expired refresh token"},
+            status=status.HTTP_401_UNAUTHORIZED,
         )
     except Exception as e:
         return Response(
-            {"error": "Token refresh failed", "detail": str(e)}, 
-            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            {"error": "Token refresh failed", "detail": str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
 
 
@@ -178,7 +178,7 @@ def refresh_token_view(request):
 def logout(request):
     """Blacklists refresh token and clears authentication cookie."""
     refresh_token = request.COOKIES.get("refresh_token")
-    
+
     if refresh_token:
         try:
             token = RefreshToken(refresh_token)
@@ -187,15 +187,14 @@ def logout(request):
             pass
         except Exception as e:
             print(f"Error during token blacklist: {e}")
-    
+
     response = Response(
-        {"detail": "Successfully logged out"}, 
-        status=status.HTTP_200_OK
+        {"detail": "Successfully logged out"}, status=status.HTTP_200_OK
     )
-    
+
     cookie_kwargs = {"path": "/"}
     if settings.COOKIE_DOMAIN:
         cookie_kwargs["domain"] = settings.COOKIE_DOMAIN
-    
+
     response.delete_cookie("refresh_token", **cookie_kwargs)
     return response

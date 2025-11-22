@@ -1,10 +1,11 @@
 import os
-from pathlib import Path
+import sys
 from datetime import timedelta
-from dotenv import load_dotenv
+from pathlib import Path
+
 import dj_database_url
 from django.core.management.utils import get_random_secret_key
-import sys
+from dotenv import load_dotenv
 
 load_dotenv()
 
@@ -20,9 +21,7 @@ ALLOWED_HOSTS = [
     h.strip() for h in os.getenv("DJANGO_ALLOWED_HOSTS", "").split(",") if h.strip()
 ]
 
-ADMINS = [
-    (os.getenv("ADMIN_NAME"), os.getenv("ADMIN_EMAIL"))
-]
+ADMINS = [(os.getenv("ADMIN_NAME"), os.getenv("ADMIN_EMAIL"))]
 
 # -------------------------------------------------------------------
 # DATABASE CONFIG
@@ -48,7 +47,7 @@ else:
 # -------------------------------------------------------------------
 REDIS_URL = os.getenv("REDIS_URL", "redis://127.0.0.1:6379/1")
 
-CACHE_TTL = int(os.getenv("CACHE_TTL", 60 * 15)) 
+CACHE_TTL = int(os.getenv("CACHE_TTL", 60 * 15))
 
 CACHES = {
     "default": {
@@ -75,7 +74,6 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-
     # Third-party
     "rest_framework",
     "rest_framework_simplejwt",
@@ -83,7 +81,6 @@ INSTALLED_APPS = [
     "corsheaders",
     "drf_yasg",
     "django_filters",
-
     # Local apps
     "user_api",
     "politicians",
@@ -97,12 +94,10 @@ MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
-
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
-
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
@@ -133,7 +128,9 @@ WSGI_APPLICATION = "netabase.wsgi.application"
 # PASSWORDS
 # -------------------------------------------------------------------
 AUTH_PASSWORD_VALIDATORS = [
-    {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
+    {
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"
+    },
     {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
     {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
@@ -235,7 +232,7 @@ CSRF_COOKIE_SECURE = not DEBUG
 SESSION_COOKIE_SAMESITE = "None" if not DEBUG else "Lax"
 CSRF_COOKIE_SAMESITE = "None" if not DEBUG else "Lax"
 
-SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+SESSION_ENGINE = "django.contrib.sessions.backends.db"
 
 # -------------------------------------------------------------------
 # GOOGLE OAUTH
@@ -264,7 +261,10 @@ if not DEBUG:
         "version": 1,
         "disable_existing_loggers": False,
         "handlers": {
-            "mail_admins": {"level": "ERROR", "class": "django.utils.log.AdminEmailHandler"},
+            "mail_admins": {
+                "level": "ERROR",
+                "class": "django.utils.log.AdminEmailHandler",
+            },
         },
         "loggers": {"django": {"handlers": ["mail_admins"], "level": "ERROR"}},
     }

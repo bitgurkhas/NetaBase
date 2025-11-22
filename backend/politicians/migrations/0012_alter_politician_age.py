@@ -7,13 +7,21 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('politicians', '0011_alter_politician_photo'),
+        ("politicians", "0011_alter_politician_photo"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='politician',
-            name='age',
-            field=models.PositiveIntegerField(blank=True, help_text='Must be at least 18 years old', null=True, validators=[django.core.validators.MinValueValidator(18), django.core.validators.MaxValueValidator(100)]),
+            model_name="politician",
+            name="age",
+            field=models.PositiveIntegerField(
+                blank=True,
+                help_text="Must be at least 18 years old",
+                null=True,
+                validators=[
+                    django.core.validators.MinValueValidator(18),
+                    django.core.validators.MaxValueValidator(100),
+                ],
+            ),
         ),
     ]

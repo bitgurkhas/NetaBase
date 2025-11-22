@@ -1,4 +1,5 @@
 from django.urls import path
+
 from news_api.views import PoliticsNewsAPIView
 
 urlpatterns = [

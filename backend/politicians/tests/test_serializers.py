@@ -1,11 +1,12 @@
 import pytest
 from django.db.models import Avg, Count
+
 from politicians.models import Politician
 from politicians.serializers import (
     PartySerializer,
+    PoliticianDetailSerializer,
     PoliticianSerializer,
     RatingSerializer,
-    PoliticianDetailSerializer
 )
 
 
@@ -19,8 +20,7 @@ def test_party_serializer_politician_count(party_factory, politician_factory):
     politician_factory(party=p, is_active=False)
 
     ser = PartySerializer(instance=p)
-    assert ser.data["politician_count"] == 2 # type: ignore
-
+    assert ser.data["politician_count"] == 2  # type: ignore
 
 
 @pytest.mark.django_db
@@ -30,18 +30,15 @@ def test_politician_serializer_avg_and_count(politician_factory, rating_factory)
     rating_factory(politician=pol, score=5)
     rating_factory(politician=pol, score=3)
 
-    pol_annotated = (
-        Politician.objects.annotate(
-            average_rating_annotated=Avg("ratings__score"),
-            total_ratings_annotated=Count("ratings")
-        )
-        .get(id=pol.id)
-    )
+    pol_annotated = Politician.objects.annotate(
+        average_rating_annotated=Avg("ratings__score"),
+        total_ratings_annotated=Count("ratings"),
+    ).get(id=pol.id)
 
     ser = PoliticianSerializer(instance=pol_annotated)
 
-    assert ser.data["average_rating"] == 4.0 # type: ignore
-    assert ser.data["rated_by"] == 2 # type: ignore
+    assert ser.data["average_rating"] == 4.0  # type: ignore
+    assert ser.data["rated_by"] == 2  # type: ignore
 
 
 @pytest.mark.django_db
@@ -50,13 +47,15 @@ def test_rating_serializer_fields(rating_factory):
 
     ser = RatingSerializer(instance=r)
 
-    assert ser.data["id"] == r.id # type: ignore
-    assert ser.data["score"] == r.score # type: ignore
-    assert ser.data["username"] == r.user.username # type: ignore
+    assert ser.data["id"] == r.id  # type: ignore
+    assert ser.data["score"] == r.score  # type: ignore
+    assert ser.data["username"] == r.user.username  # type: ignore
 
 
 @pytest.mark.django_db
-def test_politician_detail_serializer_contains_average(politician_factory, rating_factory):
+def test_politician_detail_serializer_contains_average(
+    politician_factory, rating_factory
+):
     pol = politician_factory()
 
     rating_factory(politician=pol, score=2)

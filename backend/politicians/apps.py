@@ -2,5 +2,5 @@ from django.apps import AppConfig
 
 
 class PoliticiansConfig(AppConfig):
-    default_auto_field = 'django.db.models.BigAutoField'
-    name = 'politicians'
+    default_auto_field = "django.db.models.BigAutoField"
+    name = "politicians"

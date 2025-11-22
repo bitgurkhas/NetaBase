@@ -1,10 +1,22 @@
-import feedparser
 from datetime import datetime
 
+import feedparser
+
 POLITICS_KEYWORDS = [
-    "politics", "political", "government", "election",
-    "राजनीति", "नेता", "संसद", "मन्त्री", "प्रधानमन्त्री", "दल",
-    "कांग्रेस", "एमाले", "माओवादी", "सरकार"
+    "politics",
+    "political",
+    "government",
+    "election",
+    "राजनीति",
+    "नेता",
+    "संसद",
+    "मन्त्री",
+    "प्रधानमन्त्री",
+    "दल",
+    "कांग्रेस",
+    "एमाले",
+    "माओवादी",
+    "सरकार",
 ]
 
 NEWS_SOURCES = {
@@ -96,10 +108,7 @@ def scrape_all_sources():
             source_news = scrape_source(name, url)
             all_news.extend(source_news)
         except Exception as e:
-            all_news.append({
-                "source_name": name,
-                "error": str(e)
-            })
+            all_news.append({"source_name": name, "error": str(e)})
 
     all_news = sorted(all_news, key=lambda x: x.get("parsed_date", ""), reverse=True)
 

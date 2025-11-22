@@ -1,14 +1,8 @@
 from django.contrib import admin
-from django.utils.html import format_html
 from django.db.models import Avg
+from django.utils.html import format_html
 
-from politicians.models import (
-    Politician,
-    Party,
-    Rating,
-    Initiatives,
-    Promises,
-)
+from politicians.models import Initiatives, Party, Politician, Promises, Rating
 
 
 # ---------- Inlines ----------
@@ -71,10 +65,25 @@ class PoliticianAdmin(admin.ModelAdmin):
     readonly_fields = ("views", "created_at", "updated_at", "photo_preview", "slug")
 
     fieldsets = (
-        ("Basic", {"fields": ("name", "photo", "photo_preview", "party", "party_position", "is_active")} ),
+        (
+            "Basic",
+            {
+                "fields": (
+                    "name",
+                    "photo",
+                    "photo_preview",
+                    "party",
+                    "party_position",
+                    "is_active",
+                )
+            },
+        ),
         ("Profile", {"fields": ("age", "education", "location")}),
         ("Biography & Criticism", {"fields": ("biography", "criticism")}),
-        ("History & Meta", {"fields": ("previous_party_history", "views", "created_at", "updated_at")} ),
+        (
+            "History & Meta",
+            {"fields": ("previous_party_history", "views", "created_at", "updated_at")},
+        ),
     )
     inlines = (RatingInline, PromisesInline, InitiativesInline)
     actions = (make_active, make_inactive)
@@ -90,7 +99,9 @@ class PoliticianAdmin(admin.ModelAdmin):
         avg = getattr(obj, "_avg_rating", None)
         avg = round(avg, 2) if avg else 0
         total = obj.ratings.count() if hasattr(obj, "ratings") else 0
-        return format_html("{} <span style='color: #999'>(from {} ratings)</span>", avg, total)
+        return format_html(
+            "{} <span style='color: #999'>(from {} ratings)</span>", avg, total
+        )
 
     average_rating_display.short_description = "Avg Rating"
     average_rating_display.admin_order_field = "_avg_rating"
@@ -98,7 +109,7 @@ class PoliticianAdmin(admin.ModelAdmin):
     def photo_preview(self, obj):
         if obj.photo:
             return format_html(
-                "<img src=\"{}\" style=\"max-height:60px;max-width:120px;border-radius:6px;\" />",
+                '<img src="{}" style="max-height:60px;max-width:120px;border-radius:6px;" />',
                 obj.photo.url,
             )
         return "-"
@@ -116,7 +127,7 @@ class PartyAdmin(admin.ModelAdmin):
     def flag_preview(self, obj):
         if obj.flag:
             return format_html(
-                "<img src=\"{}\" style=\"max-height:40px;max-width:120px;border-radius:4px;\" />",
+                '<img src="{}" style="max-height:40px;max-width:120px;border-radius:4px;" />',
                 obj.flag.url,
             )
         return "-"
@@ -159,4 +170,3 @@ class PromisesAdmin(admin.ModelAdmin):
 admin.site.site_header = "NetaBase"
 admin.site.site_title = "NetaBase Admin"
 admin.site.index_title = "Welcome to the NetaBase Dashboard"
-

@@ -1,8 +1,9 @@
 import os
-import django
 import random
-from django.core.files.base import ContentFile
 from io import BytesIO
+
+import django
+from django.core.files.base import ContentFile
 from PIL import Image
 
 # Setup Django
@@ -10,7 +11,8 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "politician_recorder.settings")
 django.setup()
 
 from django.contrib.auth import get_user_model
-from politicians.models import Party, Politician, Initiatives, Promises, Rating
+
+from politicians.models import Initiatives, Party, Politician, Promises, Rating
 
 User = get_user_model()
 
@@ -49,8 +51,11 @@ def create_parties():
         party, created = Party.objects.get_or_create(
             name=name,
             defaults={
-                "flag": generate_image(f"{name.replace(' ', '_')}.jpg", color=(random.randint(0,255),0,0))
-            }
+                "flag": generate_image(
+                    f"{name.replace(' ', '_')}.jpg",
+                    color=(random.randint(0, 255), 0, 0),
+                )
+            },
         )
         parties.append(party)
     return parties
@@ -80,8 +85,10 @@ def create_politicians(parties):
                 "location": "Kathmandu",
                 "biography": random.choice(sample_bios),
                 "previous_party_history": "",
-                "photo": generate_image(f"politician_{i}.jpg", color=(0, random.randint(0,255),0)),
-            }
+                "photo": generate_image(
+                    f"politician_{i}.jpg", color=(0, random.randint(0, 255), 0)
+                ),
+            },
         )
         politicians.append(politician)
     return politicians
@@ -93,20 +100,20 @@ def create_initiatives(politicians):
             Initiatives.objects.create(
                 politician=p,
                 title=f"Initiative {i} for {p.name}",
-                description="This is a description of the initiative."
+                description="This is a description of the initiative.",
             )
 
 
 def create_promises(politicians):
     statuses = ["pending", "in_progress", "completed", "failed"]
-    
+
     for p in politicians:
         for i in range(random.randint(1, 4)):
             Promises.objects.create(
                 politician=p,
                 title=f"Promise {i} by {p.name}",
                 description="This promise is part of development work.",
-                status=random.choice(statuses)
+                status=random.choice(statuses),
             )
 
 
@@ -118,7 +125,7 @@ def create_ratings(users, politicians):
                     politician=p,
                     user=user,
                     score=random.randint(1, 5),
-                    comment="Good performance overall."
+                    comment="Good performance overall.",
                 )
 
 
