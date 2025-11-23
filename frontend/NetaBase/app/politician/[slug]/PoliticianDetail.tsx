@@ -19,7 +19,6 @@ import ErrorState from "@/components/ui/ErrorState";
 import PoliticianDetailLoadingSkeleton from "@/components/ui/PoliticianDetailLoadingState";
 import { useAuthStore } from "@/hooks/useAuthStore";
 
-// Type definitions
 interface Initiative {
   title: string;
   description?: string;
@@ -55,7 +54,6 @@ export default function PoliticianDetail(): JSX.Element {
   const router = useRouter();
   const slug = params?.slug as string;
 
-  // Get user from auth store instead of sessionStorage
   const user = useAuthStore((state) => state.user);
   const userId = user?.id;
 
@@ -64,25 +62,21 @@ export default function PoliticianDetail(): JSX.Element {
       try {
         setLoading(true);
 
-        // Fetch politician details
         const politicianRes = await api.get<Politician>(
           `/api/politicians/${slug}/`
         );
         setPolitician(politicianRes.data);
 
-        // Fetch ratings for this politician
         const ratingsRes = await api.get<RatingsResponse | Rating[]>(
           `/api/politicians/${slug}/ratings/`
         );
 
-        // Handle paginated response or direct array
         const ratingsData: Rating[] = Array.isArray(ratingsRes.data)
           ? ratingsRes.data
           : ratingsRes.data.results || [];
 
         setRatings(ratingsData);
 
-        // Find user's existing review (only if user is logged in)
         if (userId) {
           const existingReview = ratingsData.find(
             (r) => String(r.user_id) === String(userId)
@@ -95,7 +89,6 @@ export default function PoliticianDetail(): JSX.Element {
           }
         }
 
-        // Fetch initiatives and promises from politician detail response
         if (
           politicianRes.data.initiatives &&
           Array.isArray(politicianRes.data.initiatives)
@@ -192,7 +185,6 @@ export default function PoliticianDetail(): JSX.Element {
       <div className="max-w-5xl mx-auto space-y-8">
         <PoliticianInfo politician={politician} />
 
-        {/* Initiatives and Promises Section */}
         {(initiatives.length > 0 || promises.length > 0) && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -280,19 +272,6 @@ export default function PoliticianDetail(): JSX.Element {
           userId={userId}
           isEditingMode={isEditingMode}
           onEdit={() => setIsEditingMode(true)}
-        />
-        <ReviewForm
-          userReview={userReview}
-          isEditingMode={isEditingMode}
-          score={score}
-          comment={comment}
-          submitting={submitting}
-          onScoreChange={setScore}
-          onCommentChange={setComment}
-          onSubmit={onSubmit}
-          onCancel={() => setIsEditingMode(false)}
-          onEdit={() => setIsEditingMode(true)}
-          onDelete={onDelete}
         />
       </div>
     </div>
