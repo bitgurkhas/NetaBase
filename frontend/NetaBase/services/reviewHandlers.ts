@@ -6,7 +6,7 @@ import { ErrorResponse, Rating, RatingsApiResponse, ReviewDeleteParams, ReviewDe
 
 export async function handleReviewSubmit(
   e: React.FormEvent<HTMLFormElement>,
-  { slug, userId, score, comment, userReview }: ReviewSubmitParams,
+  { slug, userId, score,  userReview }: ReviewSubmitParams,
   { setSubmitting, setRatings, setUserReview, setIsEditingMode }: ReviewSubmitSetters
 ): Promise<void> {
   e.preventDefault();
@@ -26,7 +26,6 @@ export async function handleReviewSubmit(
     setSubmitting(true);
     const payload = {
       score: parseInt(score.toString()),
-      comment: comment || null,
     };
 
     if (userReview) {
@@ -106,7 +105,7 @@ export async function handleReviewSubmit(
 
 export async function handleReviewDelete(
   { slug, userReview }: ReviewDeleteParams,
-  { setRatings, setUserReview, setScore, setComment, setIsEditingMode }: ReviewDeleteSetters
+  { setRatings, setUserReview, setScore,   setIsEditingMode }: ReviewDeleteSetters
 ): Promise<void> {
   if (!userReview) return;
 
@@ -143,7 +142,6 @@ export async function handleReviewDelete(
       setRatings(ratingsData);
       setUserReview(null);
       setScore(1);
-      setComment("");
       setIsEditingMode(false);
     } catch (err) {
       console.error("Error deleting review:", err);

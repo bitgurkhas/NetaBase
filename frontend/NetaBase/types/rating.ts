@@ -24,7 +24,6 @@ export interface ReviewSubmitParams {
   slug: string;
   userId: number | undefined;
   score: number;
-  comment: string;
   userReview: Rating | null;
 }
 
@@ -44,7 +43,6 @@ export interface ReviewDeleteSetters {
   setRatings: (ratings: Rating[]) => void;
   setUserReview: (review: Rating | null) => void;
   setScore: (score: number) => void;
-  setComment: (comment: string) => void;
   setIsEditingMode: (value: boolean) => void;
 }
 
