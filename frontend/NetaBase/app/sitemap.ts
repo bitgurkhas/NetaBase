@@ -10,7 +10,7 @@ export default async function sitemap() {
   // Fetch all paginated politicians
   while (nextPage) {
     const res = await fetch(nextPage, {
-      next: { revalidate: 3600 }, // allow static generation
+      next: { revalidate: 86400 }, // allow static generation
     });
 
     const data = await res.json();
