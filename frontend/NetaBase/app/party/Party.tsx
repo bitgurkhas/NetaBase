@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect } from 'react';
-import { ChevronRight, AlertCircle } from 'lucide-react';
-import api from '@/services/api';
-import { SkeletonPartiesPage } from '@/components/ui/SkeletonLoader';
+import { useState, useEffect } from "react";
+import { ChevronRight, AlertCircle } from "lucide-react";
+import api from "@/services/api";
+import { SkeletonPartiesPage } from "@/components/ui/SkeletonLoader";
+import { Politician } from "@/types";
 
 interface Party {
   id: number;
@@ -12,15 +13,6 @@ interface Party {
   slug: string;
   flag?: string;
   politician_count: number;
-}
-
-interface Politician {
-  slug: string;
-  name: string;
-  photo: string;
-  age: number;
-  average_rating: number;
-  rated_by: number;
 }
 
 interface PartiesResponse {
@@ -34,7 +26,9 @@ interface PoliticiansResponse {
 export default function PoliticalPartiesSection() {
   const [parties, setParties] = useState<Party[]>([]);
   const [selectedParty, setSelectedParty] = useState<Party | null>(null);
-  const [selectedPartyPoliticians, setSelectedPartyPoliticians] = useState<Politician[]>([]);
+  const [selectedPartyPoliticians, setSelectedPartyPoliticians] = useState<
+    Politician[]
+  >([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [loadingPoliticians, setLoadingPoliticians] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -49,14 +43,15 @@ export default function PoliticalPartiesSection() {
       setLoading(true);
       setError(null);
 
-      const response = await api.get<PartiesResponse>('/api/parties/');
+      const response = await api.get<PartiesResponse>("/api/parties/");
       setParties(response.data.results || []);
     } catch (err: unknown) {
-      const errorMessage = err && typeof err === 'object' && 'response' in err
-        ? (err.response as any)?.data?.detail || 'Failed to fetch parties'
-        : 'Failed to fetch parties';
+      const errorMessage =
+        err && typeof err === "object" && "response" in err
+          ? (err.response as any)?.data?.detail || "Failed to fetch parties"
+          : "Failed to fetch parties";
       setError(errorMessage);
-      console.error('Error fetching parties:', err);
+      console.error("Error fetching parties:", err);
     } finally {
       setLoading(false);
     }
@@ -67,10 +62,12 @@ export default function PoliticalPartiesSection() {
     try {
       setLoadingPoliticians(true);
 
-      const response = await api.get<PoliticiansResponse>(`/api/parties/${slug}/politicians/`);
+      const response = await api.get<PoliticiansResponse>(
+        `/api/parties/${slug}/politicians/`
+      );
       setSelectedPartyPoliticians(response.data.results || []);
     } catch (err) {
-      console.error('Error fetching politicians:', err);
+      console.error("Error fetching politicians:", err);
       setSelectedPartyPoliticians([]);
     } finally {
       setLoadingPoliticians(false);
@@ -83,7 +80,14 @@ export default function PoliticalPartiesSection() {
   };
 
   const getPartyColor = (id: number): string => {
-    const colors = ['#FF6B35', '#1E88E5', '#7C3AED', '#DC2626', '#F59E0B', '#10B981'];
+    const colors = [
+      "#FF6B35",
+      "#1E88E5",
+      "#7C3AED",
+      "#DC2626",
+      "#F59E0B",
+      "#10B981",
+    ];
     return colors[id % colors.length];
   };
 
@@ -102,7 +106,9 @@ export default function PoliticalPartiesSection() {
       <div className="min-h-screen bg-black flex items-center justify-center px-4">
         <div className="bg-slate-900 border border-red-500/20 rounded-xl p-8 max-w-md w-full">
           <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-white text-center mb-2">Error Loading Parties</h2>
+          <h2 className="text-xl font-bold text-white text-center mb-2">
+            Error Loading Parties
+          </h2>
           <p className="text-gray-400 text-center mb-4">{error}</p>
           <button
             onClick={fetchParties}
@@ -123,8 +129,12 @@ export default function PoliticalPartiesSection() {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-16">
-          <h1 className="text-5xl font-bold text-white mb-4">Political Parties</h1>
-          <p className="text-gray-400 text-lg">Explore the major political parties in Nepal</p>
+          <h1 className="text-5xl font-bold text-white mb-4">
+            Political Parties
+          </h1>
+          <p className="text-gray-400 text-lg">
+            Explore the major political parties in Nepal
+          </p>
           <div className="h-1 w-24 bg-linear-to-r from-pink-500 to-pink-600 rounded-full mt-6"></div>
         </div>
 
@@ -139,7 +149,10 @@ export default function PoliticalPartiesSection() {
                 className="group cursor-pointer bg-slate-900 rounded-xl overflow-hidden border border-slate-800 hover:border-pink-500 transition-all duration-300 hover:shadow-lg hover:shadow-pink-500/20"
               >
                 {/* Color Bar */}
-                <div className="h-1 w-full" style={{ backgroundColor: partyColor }}></div>
+                <div
+                  className="h-1 w-full"
+                  style={{ backgroundColor: partyColor }}
+                ></div>
 
                 {/* Party Logo */}
                 <div className="h-64 flex items-center justify-center overflow-hidden bg-slate-800 group-hover:scale-105 transition-transform duration-300">
@@ -150,7 +163,9 @@ export default function PoliticalPartiesSection() {
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <div className="text-6xl font-bold text-gray-600">{party.name.charAt(0)}</div>
+                    <div className="text-6xl font-bold text-gray-600">
+                      {party.name.charAt(0)}
+                    </div>
                   )}
                 </div>
 
@@ -158,9 +173,13 @@ export default function PoliticalPartiesSection() {
                 <div className="p-6">
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex-1">
-                      <h3 className="text-white font-bold text-lg leading-tight mb-1">{party.name}</h3>
+                      <h3 className="text-white font-bold text-lg leading-tight mb-1">
+                        {party.name}
+                      </h3>
                       {party.short_name && (
-                        <p className="text-gray-400 text-sm">{party.short_name}</p>
+                        <p className="text-gray-400 text-sm">
+                          {party.short_name}
+                        </p>
                       )}
                     </div>
                   </div>
@@ -168,7 +187,9 @@ export default function PoliticalPartiesSection() {
                   {/* Members */}
                   <div className="flex items-center justify-between pt-4 border-t border-slate-800">
                     <span className="text-gray-400 text-sm">Politicians</span>
-                    <span className="text-white font-bold">{party.politician_count}</span>
+                    <span className="text-white font-bold">
+                      {party.politician_count}
+                    </span>
                   </div>
 
                   {/* Button */}
@@ -211,12 +232,16 @@ export default function PoliticalPartiesSection() {
                     )}
                   </div>
                   <div className="flex-1">
-                    <h2 className="text-3xl font-bold text-white mb-2">{selectedParty.name}</h2>
+                    <h2 className="text-3xl font-bold text-white mb-2">
+                      {selectedParty.name}
+                    </h2>
                     <div className="flex gap-2 mb-4">
                       {selectedParty.short_name && (
                         <span
                           className="px-4 py-1 rounded-full text-white font-bold"
-                          style={{ backgroundColor: getPartyColor(selectedParty.id) }}
+                          style={{
+                            backgroundColor: getPartyColor(selectedParty.id),
+                          }}
                         >
                           {selectedParty.short_name}
                         </span>
@@ -230,14 +255,18 @@ export default function PoliticalPartiesSection() {
 
                 {/* Politicians Section */}
                 <div className="mt-8">
-                  <h3 className="text-xl font-bold text-white mb-4">Politicians</h3>
+                  <h3 className="text-xl font-bold text-white mb-4">
+                    Politicians
+                  </h3>
 
                   {loadingPoliticians ? (
                     <div className="text-center py-8">
                       <div className="inline-block">
                         <div className="w-8 h-8 border-4 border-pink-600 border-t-transparent rounded-full animate-spin"></div>
                       </div>
-                      <p className="text-gray-400 mt-2">Loading politicians...</p>
+                      <p className="text-gray-400 mt-2">
+                        Loading politicians...
+                      </p>
                     </div>
                   ) : selectedPartyPoliticians.length > 0 ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -252,14 +281,15 @@ export default function PoliticalPartiesSection() {
                             className="w-16 h-16 rounded-full object-cover"
                           />
                           <div className="flex-1">
-                            <h4 className="text-white font-semibold">{politician.name}</h4>
-                            <p className="text-gray-400 text-sm">Age: {politician.age}</p>
+                            <h4 className="text-white font-semibold">
+                              {politician.name}
+                            </h4>
+                            <p className="text-gray-400 text-sm">
+                              Age: {politician.age}
+                            </p>
                             <div className="flex items-center gap-2 mt-1">
                               <span className="text-yellow-500 text-sm">
-                                ★ {politician.average_rating.toFixed(1)}
-                              </span>
-                              <span className="text-gray-500 text-xs">
-                                ({politician.rated_by} ratings)
+                                ★ {politician.average_rating ?? 0}
                               </span>
                             </div>
                           </div>

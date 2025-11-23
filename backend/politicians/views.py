@@ -68,8 +68,12 @@ class PartyPoliticiansView(generics.ListAPIView):
 
     def get_queryset(self):
         party_slug = self.kwargs["slug"]
-        return Politician.objects.filter(party__slug=party_slug)
-
+        return Politician.objects.filter(
+            party__slug=party_slug
+        ).annotate(
+            average_rating_annotated=Avg("ratings__score"),
+            total_ratings_annotated=Count("ratings"),
+        )
 
 class PoliticianListView(generics.ListAPIView):
     serializer_class = PoliticianSerializer
