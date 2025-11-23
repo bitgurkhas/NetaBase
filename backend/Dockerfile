@@ -23,13 +23,10 @@ COPY . .
 # Create directories for static/media files
 RUN mkdir -p /app/staticfiles /app/mediafiles
 
+# Make startup script executable
+RUN chmod +x /app/start.sh
+
 EXPOSE 8000
 
-# Simple startup command
-CMD ["gunicorn", "netabase.wsgi:application", \
-     "--bind", "0.0.0.0:8000", \
-     "--workers", "2", \
-     "--threads", "2", \
-     "--timeout", "120", \
-     "--access-logfile", "-", \
-     "--error-logfile", "-"]
+# Use the startup script
+CMD ["/app/start.sh"]
