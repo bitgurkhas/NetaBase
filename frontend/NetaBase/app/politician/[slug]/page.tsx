@@ -27,7 +27,7 @@ export async function generateMetadata(props: { params: Promise<{ slug: string }
           politician.description ||
           `Details and ratings for ${politician.name}.`,
         images: [politician.image || "/og.png"],
-        url: `https://netabase.vercel.app/politician/${slug}`,
+        url: `https://netabase.xyz/politician/${slug}`,
         type: "article",
       },
       twitter: {
