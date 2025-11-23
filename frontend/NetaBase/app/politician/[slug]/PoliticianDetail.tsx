@@ -5,6 +5,8 @@ import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft, Zap, Target, Star, Trash2 } from "lucide-react";
 import { motion } from "framer-motion";
 
+import Swal from "sweetalert2"; // ✅ SweetAlert2 import
+
 import api from "@/services/api";
 import { Rating, Politician } from "@/types";
 import PoliticianInfo from "@/components/PoliticianInfo";
@@ -112,7 +114,11 @@ export default function PoliticianDetail(): JSX.Element {
 
   const onSubmitRating = async (selectedScore: number): Promise<void> => {
     if (!userId) {
-      alert("Please log in to rate this politician");
+      await Swal.fire({
+        icon: "warning",
+        title: "Login required",
+        text: "Please log in to rate this politician",
+      });
       return;
     }
 
@@ -146,7 +152,11 @@ export default function PoliticianDetail(): JSX.Element {
       }
     } catch (err) {
       console.error("Error submitting rating:", err);
-      alert("Failed to submit rating");
+      await Swal.fire({
+        icon: "error",
+        title: "Oops...",
+        text: "Failed to submit rating",
+      });
     } finally {
       setSubmitting(false);
     }
@@ -155,7 +165,18 @@ export default function PoliticianDetail(): JSX.Element {
   const onDeleteRating = async (): Promise<void> => {
     if (!userReview) return;
 
-    if (!confirm("Are you sure you want to delete your rating?")) return;
+    const result = await Swal.fire({
+      title: "Are you sure?",
+      text: "Do you really want to delete your rating?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Yes, delete it!",
+      cancelButtonText: "Cancel",
+    });
+
+    if (!result.isConfirmed) return;
 
     setSubmitting(true);
     try {
@@ -175,7 +196,11 @@ export default function PoliticianDetail(): JSX.Element {
       setRatings(ratingsData);
     } catch (err) {
       console.error("Error deleting rating:", err);
-      alert("Failed to delete rating");
+      await Swal.fire({
+        icon: "error",
+        title: "Oops...",
+        text: "Failed to delete rating",
+      });
     } finally {
       setSubmitting(false);
     }
