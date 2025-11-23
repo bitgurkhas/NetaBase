@@ -24,7 +24,7 @@ export default function AboutPage() {
             </span>
           </h1>
           <p className="text-xl sm:text-2xl text-gray-300 max-w-4xl mx-auto leading-relaxed">
-            Know Your Leaders, Shape Your Nation.
+            Know Your Leaders
           </p>
         </div>
 
