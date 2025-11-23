@@ -27,9 +27,7 @@ export const metadata: Metadata = {
     "political transparency Nepal",
     "NetaBase",
   ],
-  authors: [{ name: "Bit Gurkhas" }],
   creator: "Bit Gurkhas",
-  publisher: "Bit Gurkhas",
   formatDetection: {
     email: false,
     address: false,
@@ -41,7 +39,7 @@ export const metadata: Metadata = {
     alternateLocale: ["ne_NP"],
     url: "https://netabase.xyz",
     siteName: "NetaBase",
-    title: "NetaBase - Database of Nepali Politicians",
+    title: "Home | NetaBase",
     description:
       "Comprehensive database of Nepali politicians with biographies, criminal records, education details, and public ratings. Transparent information about Nepal's political leaders.",
     images: [
@@ -55,7 +53,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "NetaBase - Complete Database of Nepali Politicians",
+    title: "Home | NetaBase",
     description:
       "Comprehensive database of Nepali politicians with biographies, criminal records, and public ratings.",
     images: ["/og.png"],
