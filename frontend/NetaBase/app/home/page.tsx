@@ -3,7 +3,7 @@ import Home from "@/app/home/Home";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Nepali Politicians Profiles & Ratings | Political Leaders of Nepal",
+  title: "Home",
   description: "Explore comprehensive profiles and ratings of Nepali political leaders. Rate and review politicians in Nepal. Find information about Nepal's top political figures.",
   keywords: "nepali politicians, politicians nepal, politicians of nepal, political leaders, nepal government, political news nepal, politician ratings, new politicians, young politicians nepal, gen z politicians, generation z politicians, emerging politicians nepal, rising political leaders, politician profiles, nepal politics, political figures nepal, politician reviews, rate politicians, political candidates nepal, political movements nepal, politician performance, political analysis nepal, nepali leadership, politician tracker, political news today nepal, trending politicians, popular politicians nepal, politician information, nepal election, politician scorecard, politician voting record, nepali political leaders profile, political transparency nepal, politician accountability, nepali neta, naya nepal ,neta ratings, politician database nepal, politician insights, naya neta, naya party, nepali policitician news, neta news",
   openGraph: {
@@ -34,7 +34,6 @@ export default function Page() {
         <Home />
       </Suspense>
       
-      {/* Schema.org structured data for better SEO */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
