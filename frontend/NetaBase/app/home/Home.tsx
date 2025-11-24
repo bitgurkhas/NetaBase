@@ -31,7 +31,7 @@ export default function Home(): JSX.Element {
   // Get params from URL
   const urlPage = parseInt(searchParams.get("page") || "1");
   const urlSearch = searchParams.get("search") || "";
-  const urlSort = (searchParams.get("sort") || "rating_high") as SortOption;
+  const urlSort = (searchParams.get("sort") || "rating_low") as SortOption;
 
   // Local state for input
   const [searchInput, setSearchInput] = useState<string>(urlSearch);
@@ -50,7 +50,6 @@ export default function Home(): JSX.Element {
     getCachedData,
     setCachedData,
     clearCache,
-    reset,
   } = usePoliticiansStore();
 
   // Update URL with new params
@@ -59,7 +58,7 @@ export default function Home(): JSX.Element {
     
     if (page > 1) params.set("page", page.toString());
     if (search) params.set("search", search);
-    if (sort !== "rating_high") params.set("sort", sort);
+    if (sort !== "rating_low") params.set("sort", sort);
     
     const queryString = params.toString();
     const newURL = queryString ? `/?${queryString}` : "/";
@@ -82,12 +81,12 @@ export default function Home(): JSX.Element {
         const orderingMap: Record<SortOption, string> = {
           name: "name",
           name_desc: "-name",
-          rating_high: "-rated_by",
-          rating_low: "rated_by",
+          rating_high: "-average_rating_annotated",
+          rating_low: "average_rating_annotated",
           age_old: "-age",
           age_young: "age",
         };
-        params.append("ordering", orderingMap[urlSort] || "-rated_by");
+        params.append("ordering", orderingMap[urlSort] || "average_rating_annotated");
 
         const cacheKey = params.toString();
         const cached = getCachedData(cacheKey);
@@ -317,8 +316,8 @@ export default function Home(): JSX.Element {
               onChange={(e) => handleSortChange(e.target.value as SortOption)}
               className="bg-gray-950 text-white px-4 py-3 sm:py-4 rounded-lg border border-gray-800 focus:outline-none focus:border-pink-600 focus:ring-1 focus:ring-pink-600 transition cursor-pointer text-sm sm:text-base"
             >
-              <option value="rating_high">Rating (High to Low)</option>
               <option value="rating_low">Rating (Low to High)</option>
+              <option value="rating_high">Rating (High to Low)</option>
               <option value="name">Name (A-Z)</option>
               <option value="name_desc">Name (Z-A)</option>
               <option value="age_old">Age (Oldest First)</option>
