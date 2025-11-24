@@ -50,6 +50,7 @@ export default function Home(): JSX.Element {
     getCachedData,
     setCachedData,
     clearCache,
+    reset,
   } = usePoliticiansStore();
 
   // Update URL with new params
@@ -81,12 +82,12 @@ export default function Home(): JSX.Element {
         const orderingMap: Record<SortOption, string> = {
           name: "name",
           name_desc: "-name",
-          rating_high: "-average_rating_annotated",
-          rating_low: "average_rating_annotated",
+          rating_high: "-rated_by",
+          rating_low: "rated_by",
           age_old: "-age",
           age_young: "age",
         };
-        params.append("ordering", orderingMap[urlSort] || "-average_rating_annotated");
+        params.append("ordering", orderingMap[urlSort] || "-rated_by");
 
         const cacheKey = params.toString();
         const cached = getCachedData(cacheKey);
