@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.core.cache import cache
-from django.db.models import Avg, Count, F
+from django.db.models import Avg, Count, F, FloatField
+from django.db.models.functions import Coalesce
 from django.shortcuts import get_object_or_404
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
@@ -55,7 +56,7 @@ class PartyDetailView(generics.RetrieveAPIView):
         return super().dispatch(*args, **kwargs)
 
 
-
+# Politicians by Party View
 class PartyPoliticiansView(generics.ListAPIView):
     serializer_class = PoliticianSerializer
     permission_classes = [AllowAny]
@@ -63,31 +64,17 @@ class PartyPoliticiansView(generics.ListAPIView):
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
 
     search_fields = ["name"]
-    ordering_fields = ["name", "average_rating_annotated"]
+    ordering_fields = ["name"]
     ordering = ["-name"]
 
     def get_queryset(self):
         party_slug = self.kwargs["slug"]
-        queryset = Politician.objects.filter(
+        return Politician.objects.filter(
             party__slug=party_slug
         ).annotate(
             average_rating_annotated=Avg("ratings__score"),
             total_ratings_annotated=Count("ratings"),
         )
-        
-        ordering = self.request.query_params.get('ordering', '') # type: ignore
-        if ordering == '-average_rating_annotated':
-            # High to low: nulls at the end
-            queryset = queryset.order_by(
-                F('average_rating_annotated').desc(nulls_last=True)
-            )
-        elif ordering == 'average_rating_annotated':
-            # Low to high: nulls at the beginning
-            queryset = queryset.order_by(
-                F('average_rating_annotated').asc(nulls_first=True)
-            )
-        
-        return queryset
 
 class PoliticianListView(generics.ListAPIView):
     serializer_class = PoliticianSerializer
@@ -100,7 +87,7 @@ class PoliticianListView(generics.ListAPIView):
     ]
 
     queryset = Politician.objects.all().annotate(
-        average_rating_annotated=Avg("ratings__score"),
+        average_rating_annotated=Coalesce(Avg("ratings__score"), 0, output_field=FloatField()),
         total_ratings_annotated=Count("ratings"),
     )
 
