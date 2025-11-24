@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, ChangeEvent, JSX } from "react";
+import { useState, useEffect, useRef, ChangeEvent, JSX, useCallback, useMemo, memo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import {
@@ -13,29 +13,151 @@ import {
   X,
 } from "lucide-react";
 import axios, { AxiosError } from "axios";
-import {
-  SortOption,
-  PoliticiansApiResponse,
-  StarRatingProps,
-} from "@/types";
+import { SortOption, PoliticiansApiResponse, StarRatingProps } from "@/types";
 import { SkeletonCard } from "@/components/ui/SkeletonLoader";
 import { usePoliticiansStore } from "@/store/usePoliticiansStore";
+
+// StarRating
+const StarRating = memo(({ rating, ratedBy }: StarRatingProps): JSX.Element => {
+  const stars = useMemo(() => {
+    const result: JSX.Element[] = [];
+    const numRating: number = parseFloat(rating.toString()) || 0;
+    const fullStars: number = Math.floor(numRating);
+    const hasHalfStar: boolean = numRating % 1 >= 0.25;
+    const halfStarFill: string = ((numRating % 1) * 100).toFixed(0);
+
+    for (let i = 0; i < 5; i++) {
+      if (i < fullStars) {
+        result.push(
+          <Star key={i} size={20} className="fill-yellow-400 text-yellow-400" />
+        );
+      } else if (i === fullStars && hasHalfStar) {
+        result.push(
+          <div key={i} className="relative inline-block">
+            <Star size={20} className="text-gray-600" />
+            <div
+              className="absolute top-0 left-0 overflow-hidden"
+              style={{ width: `${halfStarFill}%` }}
+            >
+              <Star size={20} className="fill-yellow-400 text-yellow-400" />
+            </div>
+          </div>
+        );
+      } else {
+        result.push(<Star key={i} size={20} className="text-gray-600" />);
+      }
+    }
+    return result;
+  }, [rating]);
+
+  return (
+    <div className="flex items-center gap-1">
+      <div className="flex">{stars}</div>
+      {ratedBy > 0 && (
+        <span className="text-xs text-gray-400 ml-1">({ratedBy})</span>
+      )}
+    </div>
+  );
+});
+
+StarRating.displayName = "StarRating";
+
+// politician card component
+interface PoliticianCardProps {
+  politician: any;
+  onCardClick: (slug: string) => void;
+}
+
+const PoliticianCard = memo(({ politician: p, onCardClick }: PoliticianCardProps): JSX.Element => {
+  const handleClick = useCallback(() => {
+    onCardClick(p.slug);
+  }, [p.slug, onCardClick]);
+
+  return (
+    <div
+      onClick={handleClick}
+      className="group cursor-pointer rounded-xl overflow-hidden hover:transform hover:scale-105 transition-all duration-300 border border-gray-800 hover:border-pink-600"
+    >
+      <div className="relative h-64 sm:h-72 bg-linear-to-br from-gray-800 to-gray-900 overflow-hidden">
+        {p.photo ? (
+          <Image
+            src={p.photo}
+            alt={p.name}
+            fill
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+            className="object-cover group-hover:brightness-125 transition duration-300"
+            priority={false}
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center bg-gray-900">
+            <Users size={64} className="text-gray-700" />
+          </div>
+        )}
+
+        {p.average_rating && parseFloat(p.average_rating.toString()) > 0 && (
+          <div className="absolute top-3 right-3 sm:top-4 sm:right-4 bg-black/80 backdrop-blur-sm px-3 py-2 rounded-lg shadow-lg z-10">
+            <StarRating rating={p.average_rating} ratedBy={p.rated_by || 0} />
+          </div>
+        )}
+
+        <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition duration-300"></div>
+      </div>
+
+      <div className="bg-gray-950 p-4 sm:p-6">
+        <h3 className="font-bold text-lg sm:text-xl mb-1 line-clamp-2">
+          {p.name}
+        </h3>
+
+        {p.party_name && (
+          <p className="text-pink-400 text-xs sm:text-sm font-semibold mb-3">
+            {p.party_name}
+          </p>
+        )}
+
+        <div className="space-y-2 mb-4 text-xs sm:text-sm text-gray-400">
+          {p.age && (
+            <p>
+              <span className="text-gray-300 font-medium">Age:</span> {p.age} years
+            </p>
+          )}
+
+          {p.views !== undefined && (
+            <p>
+              <span className="text-gray-300 font-medium">Views:</span> {p.views}
+            </p>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+});
+
+PoliticianCard.displayName = "PoliticianCard";
+
+// Constants
+const PAGE_SIZE = 12;
+const ORDERING_MAP: Record<SortOption, string> = {
+  name: "name",
+  name_desc: "-name",
+  rating_high: "-average_rating_annotated",
+  rating_low: "average_rating_annotated",
+  age_old: "-age",
+  age_young: "age",
+};
 
 export default function Home(): JSX.Element {
   const router = useRouter();
   const searchParams = useSearchParams();
   const searchInputRef = useRef<HTMLInputElement>(null);
   const baseUrl: string = process.env.NEXT_PUBLIC_BASE_URL ?? "";
-  const pageSize: number = 12;
 
   // Get params from URL
-  const urlPage = parseInt(searchParams.get("page") || "1");
-  const urlSearch = searchParams.get("search") || "";
-  const urlSort = (searchParams.get("sort") || "rating_low") as SortOption;
+  const urlPage = useMemo(() => parseInt(searchParams.get("page") || "1"), [searchParams]);
+  const urlSearch = useMemo(() => searchParams.get("search") || "", [searchParams]);
+  const urlSort = useMemo(() => (searchParams.get("sort") || "rating_high") as SortOption, [searchParams]);
 
   // Local state for input
   const [searchInput, setSearchInput] = useState<string>(urlSearch);
-  const [isTransitioning, setIsTransitioning] = useState<boolean>(false);
 
   // Zustand store for data and cache
   const {
@@ -52,41 +174,36 @@ export default function Home(): JSX.Element {
     clearCache,
   } = usePoliticiansStore();
 
+  // total pages calculation
+  const totalPages = useMemo(() => Math.ceil(pagination.count / PAGE_SIZE), [pagination.count]);
+
   // Update URL with new params
-  const updateURL = (page: number, search: string, sort: SortOption) => {
+  const updateURL = useCallback((page: number, search: string, sort: SortOption) => {
     const params = new URLSearchParams();
-    
+
     if (page > 1) params.set("page", page.toString());
     if (search) params.set("search", search);
-    if (sort !== "rating_low") params.set("sort", sort);
-    
+    if (sort !== "rating_high") params.set("sort", sort);
+
     const queryString = params.toString();
     const newURL = queryString ? `/?${queryString}` : "/";
-    
+
     router.push(newURL, { scroll: false });
-  };
+  }, [router]);
 
   // Fetch politicians with caching
   useEffect(() => {
     const fetchPoliticians = async (): Promise<void> => {
       try {
         const params = new URLSearchParams();
-        params.append("page_size", pageSize.toString());
+        params.append("page_size", PAGE_SIZE.toString());
         params.append("page", urlPage.toString());
 
         if (urlSearch.trim()) {
           params.append("search", urlSearch.trim());
         }
 
-        const orderingMap: Record<SortOption, string> = {
-          name: "name",
-          name_desc: "-name",
-          rating_high: "-average_rating_annotated",
-          rating_low: "average_rating_annotated",
-          age_old: "-age",
-          age_young: "age",
-        };
-        params.append("ordering", orderingMap[urlSort] || "average_rating_annotated");
+        params.append("ordering", ORDERING_MAP[urlSort] || "average_rating_annotated");
 
         const cacheKey = params.toString();
         const cached = getCachedData(cacheKey);
@@ -97,12 +214,10 @@ export default function Home(): JSX.Element {
           setPagination(cached.pagination);
           setError(null);
           setLoading(false);
-          setIsTransitioning(false);
           return;
         }
 
         setLoading(true);
-        setIsTransitioning(true);
 
         const url: string = `${baseUrl}/api/politicians/?${params.toString()}`;
         const response = await axios.get<PoliticiansApiResponse>(url);
@@ -124,122 +239,70 @@ export default function Home(): JSX.Element {
       } catch (err) {
         console.error("Error fetching politicians:", err);
         const errorMessage =
-          err instanceof AxiosError
-            ? err.message
-            : "Failed to fetch politicians";
+          err instanceof AxiosError ? err.message : "Failed to fetch politicians";
         setError(errorMessage);
         setPoliticians([]);
       } finally {
         setLoading(false);
-        setIsTransitioning(false);
       }
     };
 
     fetchPoliticians();
-  }, [
-    baseUrl,
-    urlSearch,
-    urlSort,
-    urlPage,
-    getCachedData,
-    setCachedData,
-    setPoliticians,
-    setPagination,
-    setError,
-    setLoading,
-  ]);
+  }, [baseUrl, urlSearch, urlSort, urlPage, getCachedData, setCachedData, setPoliticians, setPagination, setError, setLoading]);
 
   // Sync search input with URL
   useEffect(() => {
     setSearchInput(urlSearch);
   }, [urlSearch]);
 
-  const handleSearchSubmit = (): void => {
+  //  event handlers
+  const handleSearchSubmit = useCallback((): void => {
     updateURL(1, searchInput, urlSort);
-  };
+  }, [searchInput, urlSort, updateURL]);
 
-  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>): void => {
+  const handleSearchKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>): void => {
     if (e.key === "Enter") {
       handleSearchSubmit();
     }
-  };
+  }, [handleSearchSubmit]);
 
-  const handleCardClick = (slug: string): void => {
+  const handleCardClick = useCallback((slug: string): void => {
     router.push(`/politician/${slug}`);
-  };
+  }, [router]);
 
-  const handleSearchChange = (e: ChangeEvent<HTMLInputElement>): void => {
+  const handleSearchChange = useCallback((e: ChangeEvent<HTMLInputElement>): void => {
     setSearchInput(e.target.value);
     if (searchInputRef.current) {
       setTimeout(() => searchInputRef.current?.focus(), 0);
     }
-  };
+  }, []);
 
-  const handleClearSearch = (): void => {
+  const handleClearSearch = useCallback((): void => {
     setSearchInput("");
     updateURL(1, "", urlSort);
     clearCache();
-  };
+  }, [urlSort, updateURL, clearCache]);
 
-  const handleSortChange = (newSort: SortOption): void => {
+  const handleSortChange = useCallback((newSort: SortOption): void => {
     updateURL(1, urlSearch, newSort);
-  };
+  }, [urlSearch, updateURL]);
 
-  const handlePreviousPage = (): void => {
+  const handlePreviousPage = useCallback((): void => {
     if (pagination.previous && urlPage > 1) {
       updateURL(urlPage - 1, urlSearch, urlSort);
       window.scrollTo(0, 0);
     }
-  };
+  }, [pagination.previous, urlPage, urlSearch, urlSort, updateURL]);
 
-  const handleNextPage = (): void => {
+  const handleNextPage = useCallback((): void => {
     if (pagination.next) {
       updateURL(urlPage + 1, urlSearch, urlSort);
       window.scrollTo(0, 0);
     }
-  };
+  }, [pagination.next, urlPage, urlSearch, urlSort, updateURL]);
 
-  const totalPages: number = Math.ceil(pagination.count / pageSize);
-
-  // Star Rating Component
-  const StarRating = ({ rating, ratedBy }: StarRatingProps): JSX.Element => {
-    const stars: JSX.Element[] = [];
-    const numRating: number = parseFloat(rating.toString()) || 0;
-    const fullStars: number = Math.floor(numRating);
-    const hasHalfStar: boolean = numRating % 1 >= 0.25;
-    const halfStarFill: string = ((numRating % 1) * 100).toFixed(0);
-
-    for (let i = 0; i < 5; i++) {
-      if (i < fullStars) {
-        stars.push(
-          <Star key={i} size={20} className="fill-yellow-400 text-yellow-400" />
-        );
-      } else if (i === fullStars && hasHalfStar) {
-        stars.push(
-          <div key={i} className="relative inline-block">
-            <Star size={20} className="text-gray-600" />
-            <div
-              className="absolute top-0 left-0 overflow-hidden"
-              style={{ width: `${halfStarFill}%` }}
-            >
-              <Star size={20} className="fill-yellow-400 text-yellow-400" />
-            </div>
-          </div>
-        );
-      } else {
-        stars.push(<Star key={i} size={20} className="text-gray-600" />);
-      }
-    }
-
-    return (
-      <div className="flex items-center gap-1">
-        <div className="flex">{stars}</div>
-        {ratedBy > 0 && (
-          <span className="text-xs text-gray-400 ml-1">({ratedBy})</span>
-        )}
-      </div>
-    );
-  };
+  //  skeleton array
+  const skeletons = useMemo(() => Array.from({ length: 12 }), []);
 
   // Error State
   if (error && !loading) {
@@ -316,8 +379,8 @@ export default function Home(): JSX.Element {
               onChange={(e) => handleSortChange(e.target.value as SortOption)}
               className="bg-gray-950 text-white px-4 py-3 sm:py-4 rounded-lg border border-gray-800 focus:outline-none focus:border-pink-600 focus:ring-1 focus:ring-pink-600 transition cursor-pointer text-sm sm:text-base"
             >
-              <option value="rating_low">Rating (Low to High)</option>
               <option value="rating_high">Rating (High to Low)</option>
+              <option value="rating_low">Rating (Low to High)</option>
               <option value="name">Name (A-Z)</option>
               <option value="name_desc">Name (Z-A)</option>
               <option value="age_old">Age (Oldest First)</option>
@@ -327,9 +390,9 @@ export default function Home(): JSX.Element {
         </div>
 
         {/* Grid - Show skeletons when loading, otherwise show politicians */}
-        {isTransitioning ? (
+        {loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-            {Array.from({ length: 12 }).map((_, index) => (
+            {skeletons.map((_, index) => (
               <SkeletonCard key={index} />
             ))}
           </div>
@@ -337,72 +400,7 @@ export default function Home(): JSX.Element {
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
               {politicians.map((p) => (
-                <div
-                  key={p.slug}
-                  onClick={() => handleCardClick(p.slug)}
-                  className="group cursor-pointer rounded-xl overflow-hidden hover:transform hover:scale-105 transition-all duration-300 border border-gray-800 hover:border-pink-600"
-                >
-                  <div className="relative h-64 sm:h-72 bg-linear-to-br from-gray-800 to-gray-900 overflow-hidden">
-                    {p.photo ? (
-                      <Image
-                        src={p.photo}
-                        alt={p.name}
-                        fill
-                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                        className="object-cover group-hover:brightness-125 transition duration-300"
-                        priority={false}
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center bg-gray-900">
-                        <Users size={64} className="text-gray-700" />
-                      </div>
-                    )}
-
-                    {p.average_rating &&
-                      parseFloat(p.average_rating.toString()) > 0 && (
-                        <div className="absolute top-3 right-3 sm:top-4 sm:right-4 bg-black/80 backdrop-blur-sm px-3 py-2 rounded-lg shadow-lg z-10">
-                          <StarRating
-                            rating={p.average_rating}
-                            ratedBy={p.rated_by || 0}
-                          />
-                        </div>
-                      )}
-
-                    <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition duration-300"></div>
-                  </div>
-
-                  <div className="bg-gray-950 p-4 sm:p-6">
-                    <h3 className="font-bold text-lg sm:text-xl mb-1 line-clamp-2">
-                      {p.name}
-                    </h3>
-
-                    {p.party_name && (
-                      <p className="text-pink-400 text-xs sm:text-sm font-semibold mb-3">
-                        {p.party_name}
-                      </p>
-                    )}
-
-                    <div className="space-y-2 mb-4 text-xs sm:text-sm text-gray-400">
-                      {p.age && (
-                        <p>
-                          <span className="text-gray-300 font-medium">
-                            Age:
-                          </span>{" "}
-                          {p.age} years
-                        </p>
-                      )}
-
-                      {p.views !== undefined && (
-                        <p>
-                          <span className="text-gray-300 font-medium">
-                            Views:
-                          </span>{" "}
-                          {p.views}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                </div>
+                <PoliticianCard key={p.slug} politician={p} onCardClick={handleCardClick} />
               ))}
             </div>
 
@@ -419,9 +417,7 @@ export default function Home(): JSX.Element {
                 </button>
 
                 <div className="flex items-center gap-2 px-4 py-3 bg-gray-950 border border-gray-800 rounded-lg text-gray-400 text-sm sm:text-base">
-                  <span className="font-semibold text-white">
-                    {urlPage}
-                  </span>
+                  <span className="font-semibold text-white">{urlPage}</span>
                   <span>/</span>
                   <span>{totalPages}</span>
                 </div>
