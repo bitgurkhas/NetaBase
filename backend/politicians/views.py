@@ -55,7 +55,7 @@ class PartyDetailView(generics.RetrieveAPIView):
         return super().dispatch(*args, **kwargs)
 
 
-# Politicians by Party View
+
 class PartyPoliticiansView(generics.ListAPIView):
     serializer_class = PoliticianSerializer
     permission_classes = [AllowAny]
@@ -63,17 +63,31 @@ class PartyPoliticiansView(generics.ListAPIView):
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
 
     search_fields = ["name"]
-    ordering_fields = ["name"]
+    ordering_fields = ["name", "average_rating_annotated"]
     ordering = ["-name"]
 
     def get_queryset(self):
         party_slug = self.kwargs["slug"]
-        return Politician.objects.filter(
+        queryset = Politician.objects.filter(
             party__slug=party_slug
         ).annotate(
             average_rating_annotated=Avg("ratings__score"),
             total_ratings_annotated=Count("ratings"),
         )
+        
+        ordering = self.request.query_params.get('ordering', '') # type: ignore
+        if ordering == '-average_rating_annotated':
+            # High to low: nulls at the end
+            queryset = queryset.order_by(
+                F('average_rating_annotated').desc(nulls_last=True)
+            )
+        elif ordering == 'average_rating_annotated':
+            # Low to high: nulls at the beginning
+            queryset = queryset.order_by(
+                F('average_rating_annotated').asc(nulls_first=True)
+            )
+        
+        return queryset
 
 class PoliticianListView(generics.ListAPIView):
     serializer_class = PoliticianSerializer
