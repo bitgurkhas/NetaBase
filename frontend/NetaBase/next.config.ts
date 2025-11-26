@@ -1,4 +1,7 @@
-const nextConfig: import("next").NextConfig = {
+/** @type {import("next").NextConfig} */
+const nextConfig = {
+  trailingSlash: true,
+
   images: {
     remotePatterns: [
       {
@@ -7,10 +10,11 @@ const nextConfig: import("next").NextConfig = {
       },
     ],
   },
-async redirects() {
+
+  async redirects() {
     return [
       {
-        source: "/",      
+        source: "/",
         destination: "/home",
         permanent: true,
       },
