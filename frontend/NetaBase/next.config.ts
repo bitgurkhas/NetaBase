@@ -1,7 +1,6 @@
 /** @type {import("next").NextConfig} */
 const nextConfig = {
-  trailingSlash: true,
-
+  trailingSlash: false,
   images: {
     remotePatterns: [
       {
@@ -17,6 +16,15 @@ const nextConfig = {
         source: "/",
         destination: "/home",
         permanent: true,
+      },
+    ];
+  },
+
+  async rewrites() {
+    return [
+      {
+        source: "/sitemap.xml/",
+        destination: "/sitemap.xml",
       },
     ];
   },
