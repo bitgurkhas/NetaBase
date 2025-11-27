@@ -1,6 +1,7 @@
 /** @type {import("next").NextConfig} */
 const nextConfig = {
   trailingSlash: false,
+
   images: {
     remotePatterns: [
       {
@@ -27,6 +28,10 @@ const nextConfig = {
         destination: "/sitemap.xml",
       },
     ];
+  },
+
+  compiler: {
+    removeConsole: true, // removes console.* in production
   },
 };
 
