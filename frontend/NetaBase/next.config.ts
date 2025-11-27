@@ -1,4 +1,7 @@
-const nextConfig: import("next").NextConfig = {
+/** @type {import("next").NextConfig} */
+const nextConfig = {
+  trailingSlash: false,
+
   images: {
     remotePatterns: [
       {
@@ -7,17 +10,28 @@ const nextConfig: import("next").NextConfig = {
       },
     ],
   },
-async redirects() {
+
+  async redirects() {
     return [
       {
-        source: "/",      
+        source: "/",
         destination: "/home",
         permanent: true,
       },
     ];
   },
+
+  async rewrites() {
+    return [
+      {
+        source: "/sitemap.xml/",
+        destination: "/sitemap.xml",
+      },
+    ];
+  },
+
   compiler: {
-    removeConsole: true, // ⬅️ removes all console.* in production
+    removeConsole: true, // removes console.* in production
   },
 };
 
