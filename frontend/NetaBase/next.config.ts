@@ -16,6 +16,9 @@ async redirects() {
       },
     ];
   },
+  compiler: {
+    removeConsole: true, // ⬅️ removes all console.* in production
+  },
 };
 
 module.exports = nextConfig;
