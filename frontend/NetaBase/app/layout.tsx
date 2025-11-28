@@ -7,6 +7,15 @@ export const metadata: Metadata = {
   applicationName: "NetaBase",
   manifest: "/manifest.json",
   metadataBase: new URL("https://netabase.xyz"),
+   icons: {
+    icon: "/favicon.ico",
+    shortcut: "/favicon.ico",
+    apple: "/icon.png",
+    other: [
+      { rel: "icon", url: "/icon-192.png", sizes: "192x192" },
+      { rel: "icon", url: "/icon-512.png", sizes: "512x512" },
+    ],
+  },
   title: {
     default:
       "NetaBase - Database of Nepali Politicians | Biography, Records & Ratings",
