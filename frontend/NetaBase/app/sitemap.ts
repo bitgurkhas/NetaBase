@@ -1,5 +1,5 @@
+export const dynamic = "force-static";
 export const revalidate = 86400;
-
 export default async function sitemap() {
   const baseUrl = process.env.NEXT_FRONTEND_BASE_URL!;
   const apiUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/api/politicians/`;
