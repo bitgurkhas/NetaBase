@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, ChangeEvent, JSX, useCallback, useMemo, memo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
+import AdBanner from "@/components/AdBanner";
 import {
   Users,
   AlertCircle,
@@ -388,6 +389,7 @@ export default function Home(): JSX.Element {
             </select>
           </div>
         </div>
+         <AdBanner dataAdFormat="auto" dataFullWidthResponsive={true} dataAdSlot="6805587669"/>
 
         {/* Grid - Show skeletons when loading, otherwise show politicians */}
         {loading ? (
