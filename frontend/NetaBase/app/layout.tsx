@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Script from "next/script";
 import "@/app/globals.css";
 import { Providers } from "./providers";
+import AdSense from "../components/AdSense"
 
 export const metadata: Metadata = {
   applicationName: "NetaBase",
@@ -140,6 +141,7 @@ export default function RootLayout({
       <head>
         <link rel="canonical" href="https://netabase.xyz/" />
         <meta name="theme-color" content="#ffffff" />
+        <AdSense pId="pub-6288230696348205" />
 
         {/* Google Analytics */}
         <Script
