@@ -44,7 +44,7 @@ const Header = () => {
       login(access, user);
       router.push("/home");
     } catch (err: any) {
-      console.error("Google login error:", err);
+      console.error("Google login error");
       alert(err.response?.data?.error || "Google login failed");
     }
   };

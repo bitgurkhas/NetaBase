@@ -38,7 +38,7 @@ export default function PoliticsNewsWidget() {
         );
         setNews(response.data.results || []);
       } catch (err) {
-        console.error("Error fetching news:", err);
+        console.error("Error fetching news");
         setError("Failed to load politics news");
       } finally {
         setLoading(false);

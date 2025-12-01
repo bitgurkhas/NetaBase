@@ -64,7 +64,7 @@ export async function handleReviewSubmit(
     setUserReview(updatedReview || null);
     setIsEditingMode(false);
   } catch (err) {
-    console.error("Error submitting review:", err);
+    console.error("Error submitting review");
 
     // Handle specific error cases
     let errorMessage = "Failed to submit review. Please try again.";
@@ -144,7 +144,7 @@ export async function handleReviewDelete(
       setScore(1);
       setIsEditingMode(false);
     } catch (err) {
-      console.error("Error deleting review:", err);
+      console.error("Error deleting review");
 
       let errorMessage = "Failed to delete review. Please try again.";
 

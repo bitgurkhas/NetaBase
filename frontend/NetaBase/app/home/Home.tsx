@@ -238,7 +238,7 @@ export default function Home(): JSX.Element {
         setPagination(paginationData);
         setError(null);
       } catch (err) {
-        console.error("Error fetching politicians:", err);
+        console.error("Error fetching politicians");
         const errorMessage =
           err instanceof AxiosError ? err.message : "Failed to fetch politicians";
         setError(errorMessage);
